@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from io import BytesIO
 import base64
+import hmac
 
 # ── Page config ──────────────────────────────────────────────
 st.set_page_config(
@@ -13,6 +14,31 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ── Password Protection ───────────────────────────────────────
+def check_password():
+    if st.session_state.get("authenticated"):
+        return True
+
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.title("🔐 Login")
+        st.caption("Masukkan password untuk mengakses dashboard.")
+        with st.form("login_form"):
+            password = st.text_input("Password", type="password", placeholder="Masukkan password...")
+            submitted = st.form_submit_button("Masuk", use_container_width=True)
+        if submitted:
+            correct = st.secrets.get("APP_PASSWORD", "")
+            if correct and hmac.compare_digest(password, correct):
+                st.session_state["authenticated"] = True
+                st.rerun()
+            else:
+                st.error("❌ Password salah. Coba lagi.")
+    return False
+
+if not check_password():
+    st.stop()
 
 
 
