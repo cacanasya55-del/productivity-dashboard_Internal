@@ -154,12 +154,13 @@ if df.empty:
     st.stop()
 
 # ── Tabs ──────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Overview",
     "⚠️ Perlu Perhatian",
     "📅 Perbandingan Periode",
     "👤 Detail Individu",
     "💰 Koefisien Pembayaran",
+    "🪪 Report Cards",
 ])
 
 # ══════════════════════════════════════════════════════════════
