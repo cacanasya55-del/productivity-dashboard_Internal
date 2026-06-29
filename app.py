@@ -596,7 +596,39 @@ with tab5:
         csv_coef = coef_tbl.to_csv(index=False).encode("utf-8")
         st.download_button("⬇️ Download Tabel Koefisien (CSV)", data=csv_coef,
                            file_name="koefisien.csv", mime="text/csv")
+# ══════════════════════════════════════════════
+# TAB 6 — REPORT CARDS
+# ══════════════════════════════════════════════
 
+with tab6:
+
+    st.subheader(
+        "🪪 Individual Report Cards"
+    )
+
+    st.caption(
+        "Scan cepat performa seluruh individu"
+    )
+
+    people = sorted(
+        df["Name Clean"]
+        .dropna()
+        .unique()
+    )
+
+    cols = st.columns(3)
+
+    for i,name in enumerate(people):
+
+        person_df = df[
+            df["Name Clean"]==name
+        ]
+
+        with cols[i%3]:
+
+            render_report_card(
+                person_df
+            )
 # ── Footer ────────────────────────────────────────────────────
 st.divider()
 st.caption("📊 Productivity Dashboard · Data diproses langsung dari file Excel yang diupload")
