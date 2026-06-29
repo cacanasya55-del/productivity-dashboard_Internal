@@ -299,11 +299,20 @@ with tab2:
         tbl_risk.columns = ["Nama","Role","Account","Avg Score","Max Score","Koef Terakhir","Jumlah Periode"]
         tbl_risk = tbl_risk.reset_index(drop=True)
 
+        def highlight_avg_score(val):
+            try:
+                v = float(val)
+                if v >= 3:   return "background-color:#d5f5e3; color:#1e8449; font-weight:600"
+                elif v >= 1: return "background-color:#fdebd0; color:#784212"
+                else:        return "background-color:#fadbd8; color:#922b21"
+            except:
+                return ""
+
         st.dataframe(
             tbl_risk.style
+                .map(highlight_avg_score, subset=["Avg Score"])
                 .format({"Avg Score":"{:.2f}", "Max Score":"{:.2f}",
-                         "Koef Terakhir": lambda x: f"{x:.1f}" if pd.notna(x) else "–"})
-                .background_gradient(subset=["Avg Score"], cmap="RdYlGn", vmin=0, vmax=5),
+                         "Koef Terakhir": lambda x: f"{x:.1f}" if pd.notna(x) else "–"}),
             use_container_width=True, height=400
         )
 
