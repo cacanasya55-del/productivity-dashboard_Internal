@@ -102,47 +102,278 @@ def highlight_coef(val):
     except:
         pass
     return ""
+
 # ══════════════════════════════════════════════
-# TAB 6 — REPORT CARDS
+# REPORT CARD HELPERS
 # ══════════════════════════════════════════════
 
-with tab6:
+def generate_insight(df_person):
 
-    st.subheader(
-        "🪪 Individual Report Cards"
+    scores = (
+        df_person
+        .sort_values("Period")["Score"]
+        .reset_index(drop=True)
     )
 
-    st.caption(
-        "Scan cepat performa seluruh individu"
+    if len(scores) < 2:
+        return "📊 Data periode belum cukup"
+
+    first = scores.iloc[0]
+    last = scores.iloc[-1]
+
+    if first > 0:
+        change = ((last-first)/first)*100
+    else:
+        change = 0
+
+    all_poor = (
+        df_person["Productivity Range"]
+        .isin(["Poor"])
+        .all()
     )
 
-    people = sorted(
-        df["Name Clean"]
+    if all_poor:
+        return "⚠️ Konsisten Poor di seluruh periode"
+
+    if change >= 20:
+        return f"📈 Score meningkat {change:.0f}% sejak periode awal"
+
+    if change <= -20:
+        return f"📉 Score turun {abs(change):.0f}% dari periode awal"
+
+    return "✓ Performa relatif stabil"
+
+
+def get_action(avg_score, coef, status):
+
+    if status == "Poor":
+        return "🔴 Attention"
+
+    if avg_score < 1:
+        return "🔴 Attention"
+
+    if coef >= 1.5:
+        return "🟢 Maintain"
+
+    if avg_score >= 2:
+        return "🔵 Improving"
+
+    return "🟡 Monitor"
+
+
+def render_report_card(df_person):
+
+    info = df_person.iloc[0]
+
+    name = info["Name Clean"]
+
+    initials = "".join(
+        [x[0].upper() for x in str(name).split()[:2]]
+    )
+
+    avg_score = df_person["Score"].mean()
+
+    max_score = df_person["Score"].max()
+
+    periods = df_person["Period"].nunique()
+
+    coef_data = (
+        df_person["Payment Coef."]
         .dropna()
-        .unique()
     )
 
-    col_count = 3
-
-    cols = st.columns(
-        col_count
+    coef = (
+        coef_data.iloc[-1]
+        if len(coef_data) > 0
+        else 0
     )
 
-    for i,name in enumerate(
-        people
-    ):
+    status_mode = (
+        df_person["Productivity Range"]
+        .mode()
+    )
 
-        person_df = df[
-            df["Name Clean"] == name
-        ]
+    status = (
+        status_mode.iloc[0]
+        if len(status_mode) > 0
+        else "Unknown"
+    )
 
-        with cols[
-            i % col_count
-        ]:
-            render_report_card(
-                person_df
-            )
-            
+    action = get_action(
+        avg_score,
+        coef,
+        status
+    )
+
+    insight = generate_insight(
+        df_person
+    )
+
+    color_map = {
+        "Excellent":"#27ae60",
+        "Normal":"#f39c12",
+        "Poor":"#e74c3c",
+        "Unknown":"#95a5a6"
+    }
+
+    badge = color_map.get(
+        status,
+        "#95a5a6"
+    )
+
+    st.markdown(
+        f"""
+        <div style="
+        background:white;
+        border-radius:16px;
+        padding:16px;
+        border:1px solid #e5e7eb;
+        box-shadow:0px 2px 8px rgba(0,0,0,.08);
+        margin-bottom:10px;
+        ">
+
+        <div style="
+        display:flex;
+        align-items:center;
+        gap:10px;
+        ">
+
+        <div style="
+        width:45px;
+        height:45px;
+        border-radius:50%;
+        background:#4f8bf9;
+        color:white;
+        text-align:center;
+        line-height:45px;
+        font-weight:bold;
+        ">
+        {initials}
+        </div>
+
+        <div>
+
+        <div style="
+        font-size:16px;
+        font-weight:700;
+        ">
+        {name}
+        </div>
+
+        <span style="
+        background:{badge};
+        color:white;
+        padding:4px 10px;
+        border-radius:20px;
+        font-size:12px;
+        ">
+        {status}
+        </span>
+
+        </div>
+
+        </div>
+
+        <br>
+
+        <div style="
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+        ">
+
+        <div style="
+        background:#f5f5f5;
+        padding:8px;
+        border-radius:8px;
+        text-align:center;
+        ">
+        Avg<br>
+        <b>{avg_score:.2f}</b>
+        </div>
+
+        <div style="
+        background:#f5f5f5;
+        padding:8px;
+        border-radius:8px;
+        text-align:center;
+        ">
+        Max<br>
+        <b>{max_score:.2f}</b>
+        </div>
+
+        <div style="
+        background:#f5f5f5;
+        padding:8px;
+        border-radius:8px;
+        text-align:center;
+        ">
+        Coef<br>
+        <b>{coef:.1f}</b>
+        </div>
+
+        <div style="
+        background:#f5f5f5;
+        padding:8px;
+        border-radius:8px;
+        text-align:center;
+        ">
+        Active<br>
+        <b>{periods}</b>
+        </div>
+
+        </div>
+
+        </div>
+
+        """,
+        unsafe_allow_html=True
+    )
+
+    trend = (
+        df_person.groupby("Period")
+        .agg(
+            Score=("Score","max")
+        )
+        .reset_index()
+        .sort_values(
+            "Period"
+        )
+    )
+
+    fig = px.bar(
+        trend,
+        x="Period",
+        y="Score",
+        height=140,
+        text="Score"
+    )
+
+    fig.update_traces(
+        textposition="outside"
+    )
+
+    fig.update_layout(
+        margin=dict(
+            l=0,
+            r=0,
+            t=0,
+            b=0
+        ),
+        xaxis_title=None,
+        yaxis_title=None,
+        showlegend=False
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+    st.info(
+        f"{insight}\n\n🎯 {action}"
+    )
+
 # ══════════════════════════════════════════════════════════════
 #  MAIN APP
 # ══════════════════════════════════════════════════════════════
@@ -630,7 +861,6 @@ with tab6:
             render_report_card(
                 person_df
             )
-
 # ── Footer ────────────────────────────────────────────────────
 st.divider()
 st.caption("📊 Productivity Dashboard · Data diproses langsung dari file Excel yang diupload")
