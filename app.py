@@ -308,7 +308,7 @@ def highlight_range(val):
 
 st.dataframe(
     tbl.style
-       .applymap(highlight_range, subset=["Productivity Range"])
+       .map(highlight_range, subset=["Productivity Range"])
        .format({"Score": "{:.2f}", "Payment Coef.": lambda x: f"{x:.1f}" if pd.notna(x) else "–"}),
     use_container_width=True,
     height=400,
