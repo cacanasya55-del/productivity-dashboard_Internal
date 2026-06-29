@@ -556,12 +556,32 @@ with tab4:
             fig_coef.update_layout(margin=dict(t=40,b=20))
             st.plotly_chart(fig_coef, use_container_width=True)
 
-        doc_cols = [c for c in df_ind.columns if c in
-                    ["Document Category","Document Type","Total Doc.","% Achievement","Source Data","Baseline/Cycle"]]
-        if doc_cols:
-            st.markdown("**Detail Dokumen**")
-            doc_tbl = df_ind[["Period"] + doc_cols].dropna(subset=doc_cols[:1]).reset_index(drop=True)
-            st.dataframe(doc_tbl, use_container_width=True, height=200)
+        # Kolom detail per role
+        ROLE_DETAIL_COLS = {
+            "DC": ["Document Category","Document Type","Source Data","Baseline/Cycle","Total Doc.","% Achievement"],
+            "QC": ["QEHS Inspection (ONSITE)","Compliance Check (TL)","Training (Class)","Baseline","Achievement"],
+            "SE": ["Onsite Clock-In","M-06 Integrated"],
+            "PE": ["M-04 MOS   (20%)","M-05 Installation   (30%)","On Air   (20%)","ATP Submit   (20%)","ATP Approve   (20%)","Total Score"],
+        }
+
+        role = info.get("Role","")
+        detail_cols = [c for c in ROLE_DETAIL_COLS.get(role, []) if c in df_ind.columns]
+
+        if detail_cols:
+            st.markdown("**Detail per Periode**")
+            detail_tbl = (df_ind[["Period","Period Status"] + detail_cols]
+                            .sort_values("Period")
+                            .reset_index(drop=True))
+            # Format angka
+            num_cols = [c for c in detail_cols if pd.api.types.is_numeric_dtype(detail_tbl[c])]
+            fmt = {c: "{:.0f}" for c in num_cols}
+            st.dataframe(
+                detail_tbl.style.format(fmt, na_rep="–"),
+                use_container_width=True,
+                height=200,
+            )
+        else:
+            st.info("Tidak ada data detail tambahan untuk individu ini.")
 
 
 # ══════════════════════════════════════════════════════════════
