@@ -102,7 +102,47 @@ def highlight_coef(val):
     except:
         pass
     return ""
+# ══════════════════════════════════════════════
+# TAB 6 — REPORT CARDS
+# ══════════════════════════════════════════════
 
+with tab6:
+
+    st.subheader(
+        "🪪 Individual Report Cards"
+    )
+
+    st.caption(
+        "Scan cepat performa seluruh individu"
+    )
+
+    people = sorted(
+        df["Name Clean"]
+        .dropna()
+        .unique()
+    )
+
+    col_count = 3
+
+    cols = st.columns(
+        col_count
+    )
+
+    for i,name in enumerate(
+        people
+    ):
+
+        person_df = df[
+            df["Name Clean"] == name
+        ]
+
+        with cols[
+            i % col_count
+        ]:
+            render_report_card(
+                person_df
+            )
+            
 # ══════════════════════════════════════════════════════════════
 #  MAIN APP
 # ══════════════════════════════════════════════════════════════
@@ -154,12 +194,13 @@ if df.empty:
     st.stop()
 
 # ── Tabs ──────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Overview",
     "⚠️ Perlu Perhatian",
     "📅 Perbandingan Periode",
     "👤 Detail Individu",
     "💰 Koefisien Pembayaran",
+    "🪪 Report Cards"
 ])
 
 # ══════════════════════════════════════════════════════════════
@@ -548,6 +589,47 @@ with tab5:
         csv_coef = coef_tbl.to_csv(index=False).encode("utf-8")
         st.download_button("⬇️ Download Tabel Koefisien (CSV)", data=csv_coef,
                            file_name="koefisien.csv", mime="text/csv")
+
+# ══════════════════════════════════════════════
+# TAB 6 — REPORT CARDS
+# ══════════════════════════════════════════════
+
+with tab6:
+
+    st.subheader(
+        "🪪 Individual Report Cards"
+    )
+
+    st.caption(
+        "Scan cepat performa seluruh individu"
+    )
+
+    people = sorted(
+        df["Name Clean"]
+        .dropna()
+        .unique()
+    )
+
+    col_count = 3
+
+    cols = st.columns(
+        col_count
+    )
+
+    for i,name in enumerate(
+        people
+    ):
+
+        person_df = df[
+            df["Name Clean"] == name
+        ]
+
+        with cols[
+            i % col_count
+        ]:
+            render_report_card(
+                person_df
+            )
 
 # ── Footer ────────────────────────────────────────────────────
 st.divider()
