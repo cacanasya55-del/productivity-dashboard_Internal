@@ -543,19 +543,29 @@ with tab4:
                    else "#784212" if pd.notna(row.get("Coef")) and row.get("Coef",0)>=1.0
                    else "#922b21")
             orig = df_ind[df_ind["Period"]==row["Period"]]
+            is_not_start = str(row["Status"]).strip() == "Not Start"
+            row_bg = "background:var(--surface-1);" if is_not_start else ""
             td_extra = ""
             for c in detail_cols:
                 val = orig.iloc[0][c] if not orig.empty and c in orig.columns else "–"
                 if pd.isna(val): val="–"
                 elif isinstance(val,float): val=f"{val:.0f}"
-                td_extra += f'<td style="padding:7px 8px;text-align:right;color:var(--text-primary);">{val}</td>'
+                cell_color = "color:#aaa;font-style:italic;" if is_not_start else "color:var(--text-primary);"
+                td_extra += f'<td style="padding:7px 8px;text-align:right;{cell_color}">{val}</td>'
+            status_badge = (
+                '<span style="background:#f0f0f0;color:#aaa;border-radius:10px;padding:2px 8px;font-size:11px;">Belum mulai</span>'
+                if is_not_start else row["Status"]
+            )
+            score_disp = "–" if is_not_start else f'{row["Score"]:.1f}'
+            coef_disp2 = "–" if is_not_start else cv
+            coef_col2  = "color:#aaa;" if is_not_start else f"color:{cc};"
             rows_html += (
-                f'<tr style="border-bottom:0.5px solid var(--border);">'
+                f'<tr style="border-bottom:0.5px solid var(--border);{row_bg}">'
                 f'<td style="padding:7px 8px;font-weight:500;color:var(--text-primary);">{row["Period"]}</td>'
-                f'<td style="padding:7px 8px;color:var(--text-muted);">{row["Status"]}</td>'
+                f'<td style="padding:7px 8px;color:var(--text-muted);">{status_badge}</td>'
                 f'<td style="padding:7px 8px;"><span style="background:{rb};color:{rf};border-radius:10px;padding:2px 8px;font-size:11px;font-weight:500;">{row["Range"]}</span></td>'
-                f'<td style="padding:7px 8px;text-align:right;font-weight:500;color:var(--text-primary);">{row["Score"]:.1f}</td>'
-                f'<td style="padding:7px 8px;text-align:right;font-weight:500;color:{cc};">{cv}</td>'
+                f'<td style="padding:7px 8px;text-align:right;font-weight:500;color:var(--text-primary);">{score_disp}</td>'
+                f'<td style="padding:7px 8px;text-align:right;font-weight:500;{coef_col2}">{coef_disp2}</td>'
                 f'{td_extra}'
                 f'</tr>'
             )
