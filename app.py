@@ -429,7 +429,6 @@ with tab4:
 
     names_avail = sorted(df["Name Clean"].dropna().unique())
     sel_name = st.selectbox("Pilih individu:", options=names_avail)
-
     df_ind = df[df["Name Clean"] == sel_name].copy()
 
     if df_ind.empty:
@@ -444,284 +443,202 @@ with tab4:
             Coef=("Payment Coef.","first"),
         ).reset_index().sort_values("Period"))
 
-        avg_score    = period_data["Score"].mean()
-        max_score    = period_data["Score"].max()
-        best_period  = period_data.loc[period_data["Score"].idxmax(), "Period"] if not period_data.empty else "–"
-        last_coef    = period_data["Coef"].dropna().iloc[-1] if period_data["Coef"].notna().any() else None
-        n_periods    = len(period_data)
+        avg_score     = period_data["Score"].mean()
+        max_score     = period_data["Score"].max()
+        best_period   = period_data.loc[period_data["Score"].idxmax(), "Period"]
+        last_coef     = period_data["Coef"].dropna().iloc[-1] if period_data["Coef"].notna().any() else None
+        n_periods     = len(period_data)
         overall_range = period_data["Range"].mode()[0] if not period_data["Range"].mode().empty else "Unknown"
+        role          = info.get("Role","")
 
-        if len(period_data) >= 2:
-            delta = period_data["Score"].iloc[-1] - period_data["Score"].iloc[-2]
-            if delta > 0.5:    tren_text = f"naik {delta:.1f} poin dari periode sebelumnya"
-            elif delta < -0.5: tren_text = f"turun {abs(delta):.1f} poin dari periode sebelumnya"
-            else:              tren_text = "stabil dibanding periode sebelumnya"
-        else:
-            tren_text = "baru 1 periode aktif"
-
-        coef_vals = period_data["Coef"].dropna()
-        if len(coef_vals) >= 2:
-            coef_delta = coef_vals.iloc[-1] - coef_vals.iloc[-2]
-            coef_note = f"Koefisien {'naik' if coef_delta > 0 else 'turun' if coef_delta < 0 else 'stabil'} ke {coef_vals.iloc[-1]:.1f} di periode terakhir."
-        elif len(coef_vals) == 1:
-            coef_note = f"Koefisien tercatat {coef_vals.iloc[0]:.1f}."
-        else:
-            coef_note = "Data koefisien belum tersedia."
-
-        badge_colors = {
-            "Excellent": ("#d5f5e3","#1e8449"),
-            "Normal":    ("#fdebd0","#784212"),
-            "Poor":      ("#fadbd8","#922b21"),
-            "Achieved":  ("#d5f5e3","#1e8449"),
-            "Unknown":   ("#f0f0f0","#555"),
-        }
-        badge_bg, badge_fg = badge_colors.get(overall_range, ("#f0f0f0","#555"))
-
-        parts    = sel_name.split()
-        initials = (parts[0][0] + (parts[-1][0] if len(parts) > 1 else "")).upper()
-
-        if overall_range == "Excellent":
-            narasi_icon = "✅"
-            narasi = f"Performa terbaik di {best_period} (score {max_score:.1f}). {coef_note} Score {tren_text}."
-        elif overall_range == "Poor":
-            narasi_icon = "⚠️"
-            narasi = f"Perlu perhatian — score tertinggi hanya {max_score:.1f} di {best_period}. {coef_note} Score {tren_text}."
-        else:
-            narasi_icon = "📊"
-            narasi = f"Score terbaik {max_score:.1f} di {best_period}. {coef_note} Score {tren_text}."
-
-        narasi_colors = {
-            "Excellent": ("#eaf7f0","#1e8449","#27ae60"),
-            "Normal":    ("#fef9ec","#784212","#f39c12"),
-            "Poor":      ("#fdf3f2","#922b21","#e74c3c"),
-            "Achieved":  ("#eaf7f0","#1e8449","#27ae60"),
-            "Unknown":   ("#f5f5f5","#555","#aaa"),
-        }
-        n_bg, n_fg, n_border = narasi_colors.get(overall_range, ("#f5f5f5","#555","#aaa"))
-
-        coef_display = f"{last_coef:.1f}" if last_coef is not None else "–"
-        coef_color   = "#1e8449" if last_coef and last_coef >= 1.5 else ("#784212" if last_coef and last_coef >= 1.0 else "#922b21")
-
-        st.markdown(f"""
-        <div style="background:var(--surface-2); border:0.5px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:16px;">
-          <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
-            <div style="width:52px; height:52px; border-radius:50%; background:{badge_bg};
-                        display:flex; align-items:center; justify-content:center;
-                        font-weight:500; font-size:16px; color:{badge_fg}; flex-shrink:0;">
-              {initials}
-            </div>
-            <div style="flex:1;">
-              <p style="font-weight:500; font-size:16px; margin:0; color:var(--text-primary);">{sel_name}</p>
-              <p style="font-size:13px; color:var(--text-muted); margin:2px 0 0;">
-                {info.get("Role","–")} &middot; {info.get("Account","–")} &middot; {info.get("Region","–")}
-              </p>
-            </div>
-            <div style="background:{badge_bg}; border-radius:20px; padding:4px 14px;
-                        font-size:12px; font-weight:500; color:{badge_fg}; white-space:nowrap;">
-              {overall_range}
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;">
-            <div style="background:var(--surface-1); border-radius:8px; padding:10px 12px;">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px;">Avg Score</p>
-              <p style="font-size:22px; font-weight:500; margin:0; color:var(--text-primary);">{avg_score:.1f}</p>
-            </div>
-            <div style="background:var(--surface-1); border-radius:8px; padding:10px 12px;">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px;">Max Score</p>
-              <p style="font-size:22px; font-weight:500; margin:0; color:var(--text-primary);">{max_score:.1f}</p>
-            </div>
-            <div style="background:var(--surface-1); border-radius:8px; padding:10px 12px;">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px;">Koefisien</p>
-              <p style="font-size:22px; font-weight:500; margin:0; color:{coef_color};">{coef_display}</p>
-            </div>
-            <div style="background:var(--surface-1); border-radius:8px; padding:10px 12px;">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px;">Periode Aktif</p>
-              <p style="font-size:22px; font-weight:500; margin:0; color:var(--text-primary);">{n_periods}</p>
-            </div>
-          </div>
-          <div style="background:{n_bg}; border-radius:8px; padding:10px 14px; border-left:3px solid {n_border};">
-            <p style="font-size:13px; color:{n_fg}; margin:0; line-height:1.6;">{narasi_icon} {narasi}</p>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
-        # ── Kartu Rapor Terintegrasi ─────────────────────────
-
-        # Kolom detail per role
-        ROLE_DETAIL_COLS = {
-            "DC": ["Document Category","Document Type","Source Data","Baseline/Cycle","Total Doc.","% Achievement"],
-            "QC": ["QEHS Inspection (ONSITE)","Compliance Check (TL)","Training (Class)","Baseline","Achievement"],
-            "SE": ["Onsite Clock-In","M-06 Integrated"],
-            "PE": ["M-04 MOS   (20%)","M-05 Installation   (30%)","On Air   (20%)","ATP Submit   (20%)","ATP Approve   (20%)","Total Score"],
-        }
-        role      = info.get("Role","")
-        detail_cols = [c for c in ROLE_DETAIL_COLS.get(role, []) if c in df_ind.columns]
-
-        # Warna header bar per status
-        header_color = {"Excellent":"#27ae60","Normal":"#f39c12","Poor":"#e74c3c","Achieved":"#27ae60"}.get(overall_range,"#95a5a6")
-
-        # Tren vs periode lalu
+        # Tren
         if len(period_data) >= 2:
             delta_val  = period_data["Score"].iloc[-1] - period_data["Score"].iloc[-2]
             tren_label = f"{'↑' if delta_val>0 else '↓'} {abs(delta_val):.1f}"
             tren_color = "#27ae60" if delta_val > 0 else "#e74c3c"
             tren_sub   = "vs periode lalu"
         else:
-            tren_label = "–"
-            tren_color = "var(--text-muted)"
-            tren_sub   = "baru 1 periode"
+            tren_label, tren_color, tren_sub = "–", "var(--text-muted)", "baru 1 periode"
 
-        # Mini bar chart HTML
-        max_s = period_data["Score"].max() if period_data["Score"].max() > 0 else 1
-        bar_html = ""
+        # Koefisien narasi
+        coef_vals = period_data["Coef"].dropna()
+        if len(coef_vals) >= 2:
+            cd = coef_vals.iloc[-1] - coef_vals.iloc[-2]
+            coef_note = f"Koefisien {'naik' if cd>0 else 'turun' if cd<0 else 'stabil'} ke {coef_vals.iloc[-1]:.1f} di periode terakhir."
+        elif len(coef_vals)==1:
+            coef_note = f"Koefisien tercatat {coef_vals.iloc[0]:.1f}."
+        else:
+            coef_note = "Data koefisien belum tersedia."
+
+        if len(period_data) >= 2:
+            dv = period_data["Score"].iloc[-1] - period_data["Score"].iloc[-2]
+            tren_text = f"naik {dv:.1f} poin" if dv>0.5 else (f"turun {abs(dv):.1f} poin" if dv<-0.5 else "stabil")
+        else:
+            tren_text = "baru 1 periode aktif"
+
+        badge_colors = {"Excellent":("#d5f5e3","#1e8449"),"Normal":("#fdebd0","#784212"),
+                        "Poor":("#fadbd8","#922b21"),"Achieved":("#d5f5e3","#1e8449"),"Unknown":("#f0f0f0","#555")}
+        badge_bg, badge_fg = badge_colors.get(overall_range, ("#f0f0f0","#555"))
+        header_color = {"Excellent":"#27ae60","Normal":"#f39c12","Poor":"#e74c3c","Achieved":"#27ae60"}.get(overall_range,"#95a5a6")
+        narasi_icon  = {"Excellent":"✅","Poor":"⚠️"}.get(overall_range,"📊")
+
+        if overall_range == "Excellent":
+            narasi = f"Performa terbaik di {best_period} (score {max_score:.1f}). {coef_note} Score {tren_text} dari periode sebelumnya."
+        elif overall_range == "Poor":
+            narasi = f"Perlu perhatian — score tertinggi hanya {max_score:.1f} di {best_period}. {coef_note} Score {tren_text}."
+        else:
+            narasi = f"Score terbaik {max_score:.1f} di {best_period}. {coef_note} Score {tren_text} dari periode sebelumnya."
+
+        parts    = sel_name.split()
+        initials = (parts[0][0] + (parts[-1][0] if len(parts)>1 else "")).upper()
+        coef_display = f"{last_coef:.1f}" if last_coef is not None else "–"
+        coef_color   = "#1e8449" if last_coef and last_coef>=1.5 else ("#784212" if last_coef and last_coef>=1.0 else "#922b21")
+
+        # ── Role detail cols ──
+        ROLE_DETAIL_COLS = {
+            "DC": ["Document Category","Document Type","Source Data","Baseline/Cycle","Total Doc.","% Achievement"],
+            "QC": ["QEHS Inspection (ONSITE)","Compliance Check (TL)","Training (Class)","Baseline","Achievement"],
+            "SE": ["Onsite Clock-In","M-06 Integrated"],
+            "PE": ["M-04 MOS   (20%)","M-05 Installation   (30%)","On Air   (20%)","ATP Submit   (20%)","ATP Approve   (20%)","Total Score"],
+        }
+        SHORT = {
+            "Document Category":"Doc Cat","Document Type":"Doc Type","Source Data":"Source",
+            "Baseline/Cycle":"Baseline","Total Doc.":"Total Doc","% Achievement":"% Ach",
+            "QEHS Inspection (ONSITE)":"QEHS","Compliance Check (TL)":"Compliance",
+            "Training (Class)":"Training","Baseline":"Baseline","Achievement":"Achievement",
+            "Onsite Clock-In":"Clock-In","M-06 Integrated":"M-06",
+            "M-04 MOS   (20%)":"MOS","M-05 Installation   (30%)":"Install",
+            "On Air   (20%)":"On Air","ATP Submit   (20%)":"ATP Sub",
+            "ATP Approve   (20%)":"ATP App","Total Score":"Total",
+        }
+        detail_cols = [c for c in ROLE_DETAIL_COLS.get(role,[]) if c in df_ind.columns]
+
+        # ── Build bar chart HTML ──
+        max_s = period_data["Score"].max() if period_data["Score"].max()>0 else 1
+        bars = ""
         for _, row in period_data.iterrows():
-            pct   = int((row["Score"] / max_s) * 52) if max_s > 0 else 2
-            pct   = max(pct, 2)
-            bclr  = RANGE_COLOR.get(row["Range"], "#95a5a6")
-            score_lbl = f"{row['Score']:.1f}" if row["Score"] > 0 else "–"
-            bar_html += f"""
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-              <span style="font-size:12px; font-weight:500; color:{bclr};">{score_lbl}</span>
-              <div style="width:100%; background:{bclr}; border-radius:4px 4px 0 0; height:{pct}px;"></div>
-              <span style="font-size:11px; color:var(--text-muted);">{row['Period']}</span>
-            </div>"""
+            pct  = max(int((row["Score"]/max_s)*52), 2) if max_s>0 else 2
+            bc   = RANGE_COLOR.get(row["Range"],"#95a5a6")
+            lbl  = f"{row['Score']:.1f}" if row["Score"]>0 else "–"
+            bars += (f'<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">'
+                     f'<span style="font-size:12px;font-weight:500;color:{bc};">{lbl}</span>'
+                     f'<div style="width:100%;background:{bc};border-radius:4px 4px 0 0;height:{pct}px;"></div>'
+                     f'<span style="font-size:11px;color:var(--text-muted);">{row["Period"]}</span>'
+                     f'</div>')
 
-        # Tabel detail per periode (HTML)
-        detail_header_html = ""
-        detail_rows_html   = ""
-        base_cols = ["Period","Status","Range","Score","Coef"]
-        if detail_cols:
-            short_names = {
-                "Document Category":"Doc Cat","Document Type":"Doc Type",
-                "Source Data":"Source","Baseline/Cycle":"Baseline",
-                "Total Doc.":"Total Doc","% Achievement":"% Ach",
-                "QEHS Inspection (ONSITE)":"QEHS","Compliance Check (TL)":"Compliance",
-                "Training (Class)":"Training","Baseline":"Baseline","Achievement":"Achievement",
-                "Onsite Clock-In":"Clock-In","M-06 Integrated":"M-06",
-                "M-04 MOS   (20%)":"MOS","M-05 Installation   (30%)":"Install",
-                "On Air   (20%)":"On Air","ATP Submit   (20%)":"ATP Sub",
-                "ATP Approve   (20%)":"ATP App","Total Score":"Total",
-            }
+        # ── Build table header extra cols ──
+        th_extra = "".join(
+            f'<th style="text-align:right;padding:6px 8px;color:var(--text-muted);font-weight:500;">{SHORT.get(c,c)}</th>'
+            for c in detail_cols
+        )
+
+        # ── Build table rows ──
+        rc = {"Excellent":("#d5f5e3","#1e8449"),"Normal":("#fdebd0","#784212"),
+              "Poor":("#fadbd8","#922b21"),"Achieved":("#d5f5e3","#1e8449")}
+        rows_html = ""
+        for _, row in period_data.iterrows():
+            rb, rf = rc.get(row["Range"],("#f0f0f0","#555"))
+            cv  = f"{row['Coef']:.1f}" if pd.notna(row.get("Coef")) else "–"
+            cc  = ("#1e8449" if pd.notna(row.get("Coef")) and row.get("Coef",0)>=1.5
+                   else "#784212" if pd.notna(row.get("Coef")) and row.get("Coef",0)>=1.0
+                   else "#922b21")
+            orig = df_ind[df_ind["Period"]==row["Period"]]
+            td_extra = ""
             for c in detail_cols:
-                detail_header_html += f'<th style="text-align:right; padding:6px 8px; color:var(--text-muted); font-weight:500;">{short_names.get(c,c)}</th>'
+                val = orig.iloc[0][c] if not orig.empty and c in orig.columns else "–"
+                if pd.isna(val): val="–"
+                elif isinstance(val,float): val=f"{val:.0f}"
+                td_extra += f'<td style="padding:7px 8px;text-align:right;color:var(--text-primary);">{val}</td>'
+            rows_html += (
+                f'<tr style="border-bottom:0.5px solid var(--border);">'
+                f'<td style="padding:7px 8px;font-weight:500;color:var(--text-primary);">{row["Period"]}</td>'
+                f'<td style="padding:7px 8px;color:var(--text-muted);">{row["Status"]}</td>'
+                f'<td style="padding:7px 8px;"><span style="background:{rb};color:{rf};border-radius:10px;padding:2px 8px;font-size:11px;font-weight:500;">{row["Range"]}</span></td>'
+                f'<td style="padding:7px 8px;text-align:right;font-weight:500;color:var(--text-primary);">{row["Score"]:.1f}</td>'
+                f'<td style="padding:7px 8px;text-align:right;font-weight:500;color:{cc};">{cv}</td>'
+                f'{td_extra}'
+                f'</tr>'
+            )
 
-        for _, row in period_data.iterrows():
-            range_colors = {
-                "Excellent":("#d5f5e3","#1e8449"),
-                "Normal":("#fdebd0","#784212"),
-                "Poor":("#fadbd8","#922b21"),
-                "Achieved":("#d5f5e3","#1e8449"),
-            }
-            rb, rf = range_colors.get(row["Range"], ("#f0f0f0","#555"))
-            coef_v  = f"{row['Coef']:.1f}" if pd.notna(row.get("Coef")) else "–"
-            coef_c  = "#1e8449" if pd.notna(row.get("Coef")) and row.get("Coef",0)>=1.5 else ("#784212" if pd.notna(row.get("Coef")) and row.get("Coef",0)>=1.0 else "#922b21")
+        period_label = " &middot; ".join(sorted(period_data["Period"].tolist()))
 
-            detail_cells = ""
-            if detail_cols:
-                orig_row = df_ind[df_ind["Period"]==row["Period"]].iloc[0] if not df_ind[df_ind["Period"]==row["Period"]].empty else None
-                for c in detail_cols:
-                    val = orig_row[c] if orig_row is not None and c in orig_row.index else "–"
-                    if pd.isna(val): val = "–"
-                    elif isinstance(val, float): val = f"{val:.0f}"
-                    detail_cells += f'<td style="padding:7px 8px; text-align:right; color:var(--text-primary);">{val}</td>'
+        # ── Render Card ──
+        card = (
+            f'<div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">'
 
-            detail_rows_html += f"""
-            <tr style="border-bottom:0.5px solid var(--border);">
-              <td style="padding:7px 8px; font-weight:500; color:var(--text-primary);">{row['Period']}</td>
-              <td style="padding:7px 8px; color:var(--text-muted);">{row['Status']}</td>
-              <td style="padding:7px 8px;"><span style="background:{rb}; color:{rf}; border-radius:10px; padding:2px 8px; font-size:11px; font-weight:500;">{row['Range']}</span></td>
-              <td style="padding:7px 8px; text-align:right; font-weight:500; color:var(--text-primary);">{row['Score']:.1f}</td>
-              <td style="padding:7px 8px; text-align:right; font-weight:500; color:{coef_c};">{coef_v}</td>
-              {detail_cells}
-            </tr>"""
+            # Header bar
+            f'<div style="background:{header_color};padding:10px 20px;display:flex;align-items:center;justify-content:space-between;">'
+            f'<span style="color:white;font-size:12px;font-weight:500;letter-spacing:0.05em;">LAPORAN PRODUKTIVITAS INDIVIDU</span>'
+            f'<span style="color:rgba(255,255,255,0.85);font-size:12px;">Periode: {period_label}</span>'
+            f'</div>'
 
-        st.markdown(f"""
-        <div style="background:var(--surface-2); border:0.5px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px;">
+            # Identitas
+            f'<div style="padding:16px 20px;display:flex;align-items:center;gap:16px;border-bottom:0.5px solid var(--border);">'
+            f'<div style="width:56px;height:56px;border-radius:50%;background:{badge_bg};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:{badge_fg};flex-shrink:0;">{initials}</div>'
+            f'<div style="flex:1;">'
+            f'<p style="font-size:18px;font-weight:500;margin:0;color:var(--text-primary);">{sel_name}</p>'
+            f'<p style="font-size:13px;color:var(--text-muted);margin:3px 0 0;">{role} &middot; {info.get("Account","–")} &middot; {info.get("Region","–")}</p>'
+            f'</div>'
+            f'<div style="text-align:right;">'
+            f'<div style="background:{badge_bg};border-radius:20px;padding:5px 16px;font-size:13px;font-weight:500;color:{badge_fg};margin-bottom:4px;">{narasi_icon} {overall_range}</div>'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0;">Status keseluruhan</p>'
+            f'</div></div>'
 
-          <!-- Header bar -->
-          <div style="background:{header_color}; padding:10px 20px; display:flex; align-items:center; justify-content:space-between;">
-            <span style="color:white; font-size:12px; font-weight:500; letter-spacing:0.05em;">LAPORAN PRODUKTIVITAS INDIVIDU</span>
-            <span style="color:rgba(255,255,255,0.85); font-size:12px;">Periode: {" · ".join(sorted(period_data["Period"].tolist()))}</span>
-          </div>
+            # 4 KPI
+            f'<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:0.5px solid var(--border);">'
+            f'<div style="padding:14px 16px;border-right:0.5px solid var(--border);">'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Avg Score</p>'
+            f'<p style="font-size:26px;font-weight:500;margin:0;color:var(--text-primary);">{avg_score:.1f}</p>'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">dari {n_periods} periode</p></div>'
 
-          <!-- Identitas -->
-          <div style="padding:16px 20px; display:flex; align-items:center; gap:16px; border-bottom:0.5px solid var(--border);">
-            <div style="width:56px; height:56px; border-radius:50%; background:{badge_bg};
-                        display:flex; align-items:center; justify-content:center;
-                        font-size:18px; font-weight:500; color:{badge_fg}; flex-shrink:0;">{initials}</div>
-            <div style="flex:1;">
-              <p style="font-size:18px; font-weight:500; margin:0; color:var(--text-primary);">{sel_name}</p>
-              <p style="font-size:13px; color:var(--text-muted); margin:3px 0 0;">{role} &nbsp;&middot;&nbsp; {info.get("Account","–")} &nbsp;&middot;&nbsp; {info.get("Region","–")}</p>
-            </div>
-            <div style="text-align:right;">
-              <div style="background:{badge_bg}; border-radius:20px; padding:5px 16px; font-size:13px; font-weight:500; color:{badge_fg}; margin-bottom:4px;">{narasi_icon} {overall_range}</div>
-              <p style="font-size:11px; color:var(--text-muted); margin:0;">Status keseluruhan</p>
-            </div>
-          </div>
+            f'<div style="padding:14px 16px;border-right:0.5px solid var(--border);">'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Score Terbaik</p>'
+            f'<p style="font-size:26px;font-weight:500;margin:0;color:var(--text-primary);">{max_score:.1f}</p>'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">di {best_period}</p></div>'
 
-          <!-- 4 KPI -->
-          <div style="display:grid; grid-template-columns:repeat(4,1fr); border-bottom:0.5px solid var(--border);">
-            <div style="padding:14px 16px; border-right:0.5px solid var(--border);">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px; text-transform:uppercase; letter-spacing:0.05em;">Avg Score</p>
-              <p style="font-size:26px; font-weight:500; margin:0; color:var(--text-primary);">{avg_score:.1f}</p>
-              <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0;">dari {n_periods} periode</p>
-            </div>
-            <div style="padding:14px 16px; border-right:0.5px solid var(--border);">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px; text-transform:uppercase; letter-spacing:0.05em;">Score Terbaik</p>
-              <p style="font-size:26px; font-weight:500; margin:0; color:var(--text-primary);">{max_score:.1f}</p>
-              <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0;">di {best_period}</p>
-            </div>
-            <div style="padding:14px 16px; border-right:0.5px solid var(--border);">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px; text-transform:uppercase; letter-spacing:0.05em;">Koefisien</p>
-              <p style="font-size:26px; font-weight:500; margin:0; color:{coef_color};">{coef_display}</p>
-              <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0;">terakhir tercatat</p>
-            </div>
-            <div style="padding:14px 16px;">
-              <p style="font-size:11px; color:var(--text-muted); margin:0 0 4px; text-transform:uppercase; letter-spacing:0.05em;">Tren Score</p>
-              <p style="font-size:26px; font-weight:500; margin:0; color:{tren_color};">{tren_label}</p>
-              <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0;">{tren_sub}</p>
-            </div>
-          </div>
+            f'<div style="padding:14px 16px;border-right:0.5px solid var(--border);">'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Koefisien</p>'
+            f'<p style="font-size:26px;font-weight:500;margin:0;color:{coef_color};">{coef_display}</p>'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">terakhir tercatat</p></div>'
 
-          <!-- Mini bar chart -->
-          <div style="padding:14px 20px; border-bottom:0.5px solid var(--border);">
-            <p style="font-size:11px; color:var(--text-muted); margin:0 0 10px; text-transform:uppercase; letter-spacing:0.05em;">Tren Score per Periode</p>
-            <div style="display:flex; align-items:flex-end; gap:10px; height:72px;">
-              {bar_html}
-            </div>
-          </div>
+            f'<div style="padding:14px 16px;">'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Tren Score</p>'
+            f'<p style="font-size:26px;font-weight:500;margin:0;color:{tren_color};">{tren_label}</p>'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">{tren_sub}</p></div>'
+            f'</div>'
 
-          <!-- Tabel detail -->
-          <div style="padding:14px 20px; border-bottom:0.5px solid var(--border); overflow-x:auto;">
-            <p style="font-size:11px; color:var(--text-muted); margin:0 0 10px; text-transform:uppercase; letter-spacing:0.05em;">Detail per Periode</p>
-            <table style="width:100%; font-size:13px; border-collapse:collapse;">
-              <thead>
-                <tr style="border-bottom:0.5px solid var(--border);">
-                  <th style="text-align:left; padding:6px 8px; color:var(--text-muted); font-weight:500;">Periode</th>
-                  <th style="text-align:left; padding:6px 8px; color:var(--text-muted); font-weight:500;">Status</th>
-                  <th style="text-align:left; padding:6px 8px; color:var(--text-muted); font-weight:500;">Range</th>
-                  <th style="text-align:right; padding:6px 8px; color:var(--text-muted); font-weight:500;">Score</th>
-                  <th style="text-align:right; padding:6px 8px; color:var(--text-muted); font-weight:500;">Koef</th>
-                  {detail_header_html}
-                </tr>
-              </thead>
-              <tbody>
-                {detail_rows_html}
-              </tbody>
-            </table>
-          </div>
+            # Mini bar chart
+            f'<div style="padding:14px 20px;border-bottom:0.5px solid var(--border);">'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.05em;">Tren Score per Periode</p>'
+            f'<div style="display:flex;align-items:flex-end;gap:10px;height:72px;">{bars}</div>'
+            f'</div>'
 
-          <!-- Insight -->
-          <div style="padding:14px 20px;">
-            <p style="font-size:11px; color:var(--text-muted); margin:0 0 8px; text-transform:uppercase; letter-spacing:0.05em;">Insight Otomatis</p>
-            <div style="background:var(--surface-1); border-radius:8px; padding:10px 14px; border-left:3px solid {header_color};">
-              <p style="font-size:13px; color:var(--text-primary); margin:0; line-height:1.7;">{narasi_icon} {narasi}</p>
-            </div>
-          </div>
+            # Tabel detail
+            f'<div style="padding:14px 20px;border-bottom:0.5px solid var(--border);overflow-x:auto;">'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.05em;">Detail per Periode</p>'
+            f'<table style="width:100%;font-size:13px;border-collapse:collapse;">'
+            f'<thead><tr style="border-bottom:0.5px solid var(--border);">'
+            f'<th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:500;">Periode</th>'
+            f'<th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:500;">Status</th>'
+            f'<th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:500;">Range</th>'
+            f'<th style="text-align:right;padding:6px 8px;color:var(--text-muted);font-weight:500;">Score</th>'
+            f'<th style="text-align:right;padding:6px 8px;color:var(--text-muted);font-weight:500;">Koef</th>'
+            f'{th_extra}'
+            f'</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            f'</table></div>'
 
-        </div>
-        """, unsafe_allow_html=True)
+            # Insight
+            f'<div style="padding:14px 20px;">'
+            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 8px;text-transform:uppercase;letter-spacing:0.05em;">Insight Otomatis</p>'
+            f'<div style="background:var(--surface-1);border-radius:8px;padding:10px 14px;border-left:3px solid {header_color};">'
+            f'<p style="font-size:13px;color:var(--text-primary);margin:0;line-height:1.7;">{narasi_icon} {narasi}</p>'
+            f'</div></div>'
+
+            f'</div>'
+        )
+        st.markdown(card, unsafe_allow_html=True)
+
 
 
 
