@@ -94,6 +94,244 @@ def highlight_range(val):
     return colors.get(val, "")
 
 def highlight_coef(val):
+    # ══════════════════════════════════════════════
+# REPORT CARD HELPERS
+# ══════════════════════════════════════════════
+
+def generate_insight(df_person):
+
+    scores = (
+        df_person
+        .sort_values("Period")["Score"]
+        .reset_index(drop=True)
+    )
+
+    if len(scores) < 2:
+        return "📊 Data periode belum cukup"
+
+    first = scores.iloc[0]
+    last = scores.iloc[-1]
+
+    if first > 0:
+        change = ((last-first)/first)*100
+    else:
+        change = 0
+
+    if (
+        df_person["Productivity Range"]
+        .isin(["Poor"])
+        .all()
+    ):
+        return "⚠️ Konsisten Poor di seluruh periode"
+
+    if change >= 20:
+        return f"📈 Score meningkat {change:.0f}% sejak periode awal"
+
+    elif change <= -20:
+        return f"📉 Score turun {abs(change):.0f}% dari periode awal"
+
+    return "✓ Performa relatif stabil"
+
+
+def get_action(avg_score, coef, status):
+
+    if status=="Poor":
+        return "🔴 Attention"
+
+    if avg_score<1:
+        return "🔴 Attention"
+
+    if coef>=1.5:
+        return "🟢 Maintain"
+
+    if avg_score>=2:
+        return "🔵 Improving"
+
+    return "🟡 Monitor"
+
+
+def render_report_card(df_person):
+
+    info = df_person.iloc[0]
+
+    uid = str(info["Uniq-ID"])
+    name = info["Name Clean"]
+
+    initials = "".join(
+        [x[0].upper() for x in str(name).split()[:2]]
+    )
+
+    avg_score = df_person["Score"].mean()
+    max_score = df_person["Score"].max()
+    periods = df_person["Period"].nunique()
+
+    coef_data = (
+        df_person["Payment Coef."]
+        .dropna()
+    )
+
+    coef = (
+        coef_data.iloc[-1]
+        if len(coef_data)>0
+        else 0
+    )
+
+    status_mode = (
+        df_person["Productivity Range"]
+        .mode()
+    )
+
+    status = (
+        status_mode.iloc[0]
+        if len(status_mode)>0
+        else "Unknown"
+    )
+
+    insight = generate_insight(
+        df_person
+    )
+
+    action = get_action(
+        avg_score,
+        coef,
+        status
+    )
+
+    badge_color = {
+        "Excellent":"#27ae60",
+        "Normal":"#f39c12",
+        "Poor":"#e74c3c",
+        "Unknown":"#95a5a6"
+    }
+
+    color = badge_color.get(
+        status,
+        "#95a5a6"
+    )
+
+    st.markdown(
+        f"""
+        <div style="
+        background:white;
+        border-radius:16px;
+        padding:16px;
+        border:1px solid #ddd;
+        box-shadow:0px 2px 8px rgba(0,0,0,.08);
+        margin-bottom:10px;
+        ">
+
+        <div style="
+        display:flex;
+        align-items:center;
+        gap:10px;
+        ">
+
+        <div style="
+        width:45px;
+        height:45px;
+        border-radius:50%;
+        background:#4f8bf9;
+        color:white;
+        text-align:center;
+        line-height:45px;
+        font-weight:bold;
+        ">
+        {initials}
+        </div>
+
+        <div>
+
+        <div style="
+        font-size:15px;
+        font-weight:700;
+        ">
+        {name}
+        </div>
+
+        <span style="
+        background:{color};
+        color:white;
+        border-radius:20px;
+        padding:4px 10px;
+        font-size:11px;
+        ">
+        {status}
+        </span>
+
+        </div>
+
+        </div>
+
+        <br>
+
+        <div style="
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+        ">
+
+        <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center;">
+        Avg<br><b>{avg_score:.2f}</b>
+        </div>
+
+        <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center;">
+        Max<br><b>{max_score:.2f}</b>
+        </div>
+
+        <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center;">
+        Coef<br><b>{coef:.1f}</b>
+        </div>
+
+        <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center;">
+        Active<br><b>{periods}</b>
+        </div>
+
+        </div>
+
+        </div>
+
+        """,
+        unsafe_allow_html=True
+    )
+
+    trend = (
+        df_person
+        .groupby("Period")
+        .agg(
+            Score=("Score","max")
+        )
+        .reset_index()
+        .sort_values("Period")
+    )
+
+    fig = px.bar(
+        trend,
+        x="Period",
+        y="Score",
+        height=130
+    )
+
+    fig.update_layout(
+        margin=dict(
+            l=0,
+            r=0,
+            t=0,
+            b=0
+        ),
+        showlegend=False,
+        xaxis_title=None,
+        yaxis_title=None
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        key=f"chart_{uid}"
+    )
+
+    st.info(
+        f"{insight}\n\n🎯 {action}"
+    )
     try:
         v = float(val)
         if v >= 1.5:   return "background-color:#d5f5e3; color:#1e8449; font-weight:600"
