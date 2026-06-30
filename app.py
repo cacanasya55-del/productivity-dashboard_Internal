@@ -44,183 +44,32 @@ if not check_password():
 
 st.markdown("""
 <style>
-    /* ── Dark Mode theme tokens ────────────────────────────── */
-    :root {
-        --kg-bg:        #1c2128;
-        --kg-bg-2:      #22272e;
-        --kg-panel:     #22272e;
-        --kg-panel-2:   #2d333b;
-        --kg-border:    #2d333b;
-        --kg-blue:      #388bfd;
-        --kg-blue-dim:  rgba(56,139,253,0.15);
-        --kg-text:      #e6edf3;
-        --kg-muted:     #8b949e;
-        --kg-pill-bg:   #1a2540;
-        --kg-pill-bd:   #2c3a56;
-    }
+    .metric-card { background:#f8f9fa; border-radius:10px; padding:16px 20px;
+                   border-left:4px solid #4f8bf9; margin-bottom:8px; }
+    .alert-card  { background:#fff3cd; border-radius:8px; padding:12px 16px;
+                   border-left:4px solid #ffc107; margin:4px 0; }
+    .alert-name  { font-weight:600; color:#856404; }
+    .alert-info  { font-size:12px; color:#856404; }
 
-    .stApp { background:var(--kg-bg); }
-    .block-container { padding-top:1rem; }
-
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background:var(--kg-bg-2); border-right:1px solid var(--kg-border);
-    }
-    section[data-testid="stSidebar"] * { color:var(--kg-text) !important; }
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        color:#ffffff !important; font-weight:700 !important;
-        font-size:13px !important; text-transform:uppercase; letter-spacing:0.06em;
-    }
-    section[data-testid="stSidebar"] hr { border-color:var(--kg-border) !important; }
-    section[data-testid="stSidebar"] label { color:var(--kg-muted) !important; font-weight:600 !important; font-size:12px !important; text-transform:uppercase; letter-spacing:0.04em; }
-
-    /* Pill-style multiselect tags */
-    section[data-testid="stSidebar"] span[data-baseweb="tag"] {
-        background:var(--kg-blue) !important; border-radius:20px !important;
-        border:none !important; color:white !important; font-weight:600 !important;
-    }
-    section[data-testid="stSidebar"] .stMultiSelect div[data-baseweb="select"] > div {
-        background:var(--kg-panel) !important;
-        border:1px solid var(--kg-border) !important;
-        border-radius:10px !important;
-    }
-    section[data-testid="stSidebar"] .stTextInput input {
-        background:var(--kg-panel) !important;
-        border:1px solid var(--kg-border) !important;
-        border-radius:10px !important; color:var(--kg-text) !important;
-    }
-
-    /* Top header bar */
+    /* Header / Brand */
     .kg-header {
         display:flex; align-items:center; gap:14px;
         padding:14px 24px; margin:-1rem -1rem 1.2rem -1rem;
-        background:var(--kg-bg-2); border-bottom:1px solid var(--kg-border);
+        background:#ffffff; border-bottom:1px solid #e3e7ee;
     }
     .kg-logo {
         width:38px; height:38px; border-radius:9px;
-        background:var(--kg-blue);
+        background:#2563eb;
         display:flex; align-items:center; justify-content:center;
         font-weight:700; font-size:15px; color:white; flex-shrink:0;
     }
-    .kg-brand-name { font-size:17px; font-weight:700; color:#ffffff; margin:0; }
-    .kg-brand-sub  { font-size:12px; color:var(--kg-muted); margin:0; }
+    .kg-brand-name { font-size:17px; font-weight:700; color:#1a2332; margin:0; }
+    .kg-brand-sub  { font-size:12px; color:#64748b; margin:0; }
     .kg-header-right { margin-left:auto; text-align:right; }
     .kg-header-tag {
-        font-size:11px; color:var(--kg-muted); text-transform:uppercase;
+        font-size:11px; color:#64748b; text-transform:uppercase;
         letter-spacing:0.06em; font-weight:600;
     }
-
-    /* Headings & body text — force light color everywhere in main area */
-    .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
-    .main p, .main span, .main label, .main li,
-    [data-testid="stMarkdownContainer"] p,
-    [data-testid="stMarkdownContainer"] span,
-    [data-testid="stMarkdownContainer"] li {
-        color:var(--kg-text) !important;
-    }
-    h3 { color:#ffffff !important; font-weight:700 !important; }
-    .stCaption, [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {
-        color:var(--kg-muted) !important;
-    }
-
-    /* File uploader widget */
-    [data-testid="stFileUploader"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border);
-        border-radius:10px; padding:8px;
-    }
-    [data-testid="stFileUploader"] section {
-        background:var(--kg-panel-2) !important; border:1px dashed var(--kg-border) !important;
-    }
-    [data-testid="stFileUploaderDropzoneInstructions"] span,
-    [data-testid="stFileUploaderDropzoneInstructions"] div,
-    [data-testid="stFileUploaderDropzoneInstructions"] small {
-        color:var(--kg-text) !important;
-    }
-    [data-testid="stFileUploaderDropzoneInstructions"] small { color:var(--kg-muted) !important; }
-    [data-testid="stFileUploader"] button {
-        background:var(--kg-blue) !important; color:white !important; border:none !important;
-    }
-
-    /* Widget labels (selectbox, text_input, multiselect, etc. in main area) */
-    [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label {
-        color:var(--kg-text) !important; font-weight:600 !important;
-    }
-
-    /* st.info / st.warning / st.success / st.error text */
-    div[data-testid="stAlert"] p, div[data-testid="stAlert"] span {
-        color:var(--kg-text) !important;
-    }
-
-    /* Selectbox selected value text */
-    div[data-baseweb="select"] span { color:var(--kg-text) !important; }
-
-    /* Subheader text specifically */
-    [data-testid="stHeading"] p, [data-testid="stHeading"] span {
-        color:#ffffff !important;
-    }
-
-    /* KPI metric cards */
-    div[data-testid="stMetric"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border); border-radius:12px;
-        padding:16px 20px;
-    }
-    div[data-testid="stMetricLabel"] {
-        color:var(--kg-muted) !important; font-weight:600 !important;
-        font-size:11px !important; text-transform:uppercase; letter-spacing:0.06em;
-    }
-    div[data-testid="stMetricValue"] { color:#ffffff !important; font-weight:700 !important; }
-
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] { gap:4px; border-bottom:1px solid var(--kg-border); }
-    .stTabs [data-baseweb="tab"] {
-        height:42px; border-radius:8px 8px 0 0; color:var(--kg-muted); font-weight:600;
-        padding:0 16px; background:transparent;
-    }
-    .stTabs [aria-selected="true"] {
-        background:transparent !important; color:var(--kg-blue) !important;
-        border-bottom:2px solid var(--kg-blue) !important;
-    }
-
-    /* Containers / charts wrapper look */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border) !important;
-        border-radius:12px;
-    }
-
-    /* Plotly chart card wrapper */
-    div[data-testid="stPlotlyChart"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border);
-        border-radius:12px; padding:12px;
-    }
-
-    /* Dataframes */
-    div[data-testid="stDataFrame"] {
-        border:1px solid var(--kg-border); border-radius:10px; overflow:hidden;
-    }
-
-    /* Buttons */
-    .stButton button, .stDownloadButton button {
-        border-radius:8px !important; font-weight:600 !important;
-        background:var(--kg-blue) !important; color:white !important; border:none !important;
-    }
-
-    /* Select boxes in main area */
-    div[data-baseweb="select"] > div {
-        background:var(--kg-panel) !important; border:1px solid var(--kg-border) !important;
-        color:var(--kg-text) !important;
-    }
-
-    /* Info / warning / success boxes */
-    div[data-testid="stAlert"] { border-radius:10px; }
-
-    /* Legacy classes */
-    .metric-card { background:var(--kg-panel); border-radius:10px; padding:16px 20px;
-                   border-left:4px solid var(--kg-blue); margin-bottom:8px; }
-    .alert-card  { background:rgba(255,193,7,0.1); border-radius:8px; padding:12px 16px;
-                   border-left:4px solid #ffc107; margin:4px 0; }
-    .alert-name  { font-weight:600; color:#ffc107; }
-    .alert-info  { font-size:12px; color:#ffc107; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -256,46 +105,9 @@ RANGE_COLOR = {
 }
 PERIOD_ORDER = ["M-01", "M-02", "M-03", "M-04"]
 
-# ── Dark theme template untuk semua chart Plotly ────────────
-import plotly.io as pio
-pio.templates["kg_dark"] = go.layout.Template(
-    layout=go.Layout(
-        paper_bgcolor="#22272e",
-        plot_bgcolor="#22272e",
-        font=dict(color="#e6edf3", family="Inter, sans-serif"),
-        xaxis=dict(
-            gridcolor="#2d333b", linecolor="#2d333b", zerolinecolor="#2d333b",
-            tickfont=dict(color="#e6edf3"),
-            title=dict(font=dict(color="#e6edf3")),
-        ),
-        yaxis=dict(
-            gridcolor="#2d333b", linecolor="#2d333b", zerolinecolor="#2d333b",
-            tickfont=dict(color="#e6edf3"),
-            title=dict(font=dict(color="#e6edf3")),
-        ),
-        legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color="#e6edf3")),
-        colorway=["#388bfd","#5fd99e","#e3b341","#a371f7","#f47174","#39c5cf"],
-        margin=dict(t=50, b=40, l=50, r=20),
-        title=dict(font=dict(color="#ffffff")),
-        hoverlabel=dict(bgcolor="#2d333b", font=dict(color="#e6edf3")),
-    )
-)
-pio.templates.default = "kg_dark"
-
+# ── Chart styling (tema terang default Plotly) ──────────────
 def force_dark(fig):
-    """Pastikan setiap chart benar-benar gelap, terlepas dari update_layout
-    apapun yang dipanggil setelahnya — termasuk tickfont sumbu X/Y."""
-    fig.update_layout(
-        template="kg_dark",
-        paper_bgcolor="#22272e",
-        plot_bgcolor="#22272e",
-        font_color="#e6edf3",
-    )
-    fig.update_xaxes(tickfont_color="#e6edf3", title_font_color="#e6edf3",
-                      gridcolor="#2d333b", linecolor="#2d333b")
-    fig.update_yaxes(tickfont_color="#e6edf3", title_font_color="#e6edf3",
-                      gridcolor="#2d333b", linecolor="#2d333b")
-    fig.update_layout(legend_font_color="#e6edf3")
+    """Placeholder — tema sekarang terang (default Plotly), tidak perlu override warna."""
     return fig
 
 # ── Load Data ─────────────────────────────────────────────────
