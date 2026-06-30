@@ -44,13 +44,108 @@ if not check_password():
 
 st.markdown("""
 <style>
+    /* ── Korporat theme tokens ──────────────────────────────── */
+    :root {
+        --kg-navy:      #0f2540;
+        --kg-navy-2:    #16314f;
+        --kg-blue:      #2563eb;
+        --kg-blue-dim:  #e8effe;
+        --kg-ink:       #1a2332;
+        --kg-muted:     #64748b;
+        --kg-border:    #e3e7ee;
+        --kg-bg:        #f6f8fb;
+    }
+
+    .stApp { background:var(--kg-bg); }
+
+    section[data-testid="stSidebar"] {
+        background:linear-gradient(180deg, var(--kg-navy) 0%, var(--kg-navy-2) 100%);
+    }
+    section[data-testid="stSidebar"] * { color:#dbe4f0 !important; }
+    section[data-testid="stSidebar"] .stMultiSelect label,
+    section[data-testid="stSidebar"] .stTextInput label,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 { color:#ffffff !important; font-weight:600 !important; }
+    section[data-testid="stSidebar"] hr { border-color:rgba(255,255,255,0.12) !important; }
+
+    section[data-testid="stSidebar"] .stMultiSelect div[data-baseweb="select"] > div,
+    section[data-testid="stSidebar"] .stTextInput input {
+        background:rgba(255,255,255,0.07) !important;
+        border:1px solid rgba(255,255,255,0.15) !important;
+        border-radius:8px !important;
+    }
+
+    .kg-header {
+        display:flex; align-items:center; gap:14px;
+        padding:18px 24px; margin:-1rem -1rem 1.5rem -1rem;
+        background:linear-gradient(135deg, var(--kg-navy) 0%, var(--kg-navy-2) 100%);
+        border-radius:0 0 14px 14px;
+    }
+    .kg-logo {
+        width:46px; height:46px; border-radius:10px;
+        background:linear-gradient(135deg, var(--kg-blue) 0%, #1d4ed8 100%);
+        display:flex; align-items:center; justify-content:center;
+        font-weight:700; font-size:16px; color:white; flex-shrink:0;
+        letter-spacing:0.02em;
+        box-shadow:0 2px 8px rgba(37,99,235,0.35);
+    }
+    .kg-brand-name { font-size:19px; font-weight:700; color:#ffffff; margin:0; letter-spacing:-0.01em; }
+    .kg-brand-sub  { font-size:12.5px; color:#9fb3cc; margin:1px 0 0; font-weight:400; }
+    .kg-header-right { margin-left:auto; text-align:right; }
+    .kg-header-tag {
+        font-size:11px; color:#9fb3cc; text-transform:uppercase;
+        letter-spacing:0.08em; font-weight:600;
+    }
+
+    h3 { color:var(--kg-ink) !important; font-weight:700 !important; }
+
+    div[data-testid="stMetric"] {
+        background:#ffffff; border:1px solid var(--kg-border); border-radius:12px;
+        padding:14px 18px; box-shadow:0 1px 2px rgba(15,37,64,0.04);
+    }
+    div[data-testid="stMetricLabel"] { color:var(--kg-muted) !important; font-weight:600 !important; }
+    div[data-testid="stMetricValue"] { color:var(--kg-ink) !important; font-weight:700 !important; }
+
+    .stTabs [data-baseweb="tab-list"] { gap:4px; border-bottom:2px solid var(--kg-border); }
+    .stTabs [data-baseweb="tab"] {
+        height:42px; border-radius:8px 8px 0 0; color:var(--kg-muted); font-weight:600;
+        padding:0 16px;
+    }
+    .stTabs [aria-selected="true"] {
+        background:var(--kg-blue-dim) !important; color:var(--kg-blue) !important;
+    }
+
+    div[data-testid="stDataFrame"] {
+        border:1px solid var(--kg-border); border-radius:10px; overflow:hidden;
+    }
+
+    .stButton button, .stDownloadButton button {
+        border-radius:8px !important; font-weight:600 !important;
+    }
+
     .metric-card { background:#f8f9fa; border-radius:10px; padding:16px 20px;
-                   border-left:4px solid #4f8bf9; margin-bottom:8px; }
+                   border-left:4px solid var(--kg-blue); margin-bottom:8px; }
     .alert-card  { background:#fff3cd; border-radius:8px; padding:12px 16px;
                    border-left:4px solid #ffc107; margin:4px 0; }
     .alert-name  { font-weight:600; color:#856404; }
     .alert-info  { font-size:12px; color:#856404; }
 </style>
+""", unsafe_allow_html=True)
+
+# ── Header / Brand ───────────────────────────────────────────
+# NOTE: ganti "KG" dan teks di bawah ini dengan logo asli perusahaan
+# kapan saja siap — cukup edit bagian ini saja.
+st.markdown("""
+<div class="kg-header">
+    <div class="kg-logo">KG</div>
+    <div>
+        <p class="kg-brand-name">Kisel Group</p>
+        <p class="kg-brand-sub">Productivity Monitoring System</p>
+    </div>
+    <div class="kg-header-right">
+        <p class="kg-header-tag">Internal Dashboard</p>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
 # ── Constants ─────────────────────────────────────────────────
@@ -80,12 +175,22 @@ def load_data(file):
         df = pd.read_excel(file, sheet_name=sheet)
         df = df.rename(columns=lambda c: str(c).strip())
 
-        score_candidates = ["Total % Ach.", "Productivity", "Total Score", "Achievement", "Onsite Clock-In"]
+        # Score per role — pilih kolom yang paling relevan
+        ROLE_SCORE_COL = {
+            "DC": "Total % Ach.",
+            "QC": "Achievement",
+            "SE": "Onsite Clock-In",
+            "PE": "Total Score",
+        }
+        score_col = ROLE_SCORE_COL.get(role, None)
         df["Score"] = 0.0
-        for col in score_candidates:
-            if col in df.columns:
-                df["Score"] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-                break
+        if score_col and score_col in df.columns:
+            df["Score"] = pd.to_numeric(df[score_col], errors="coerce").fillna(0)
+        else:
+            for col in ["Total % Ach.", "Achievement", "Total Score", "Onsite Clock-In", "Productivity"]:
+                if col in df.columns:
+                    df["Score"] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+                    break
 
         if "Productivity Range" not in df.columns:
             df["Productivity Range"] = df.get("Productivity", "Unknown")
@@ -134,8 +239,8 @@ def highlight_coef(val):
 # ══════════════════════════════════════════════════════════════
 #  MAIN APP
 # ══════════════════════════════════════════════════════════════
-st.title("📊 Productivity Monitoring Dashboard")
-st.caption("Upload file Excel, gunakan filter sidebar, dan eksplorasi data produktivitas tim.")
+st.markdown("##### 📊 Dashboard Monitoring Produktivitas")
+st.caption("Upload file Excel, gunakan filter di sidebar, dan eksplorasi data produktivitas tim.")
 
 uploaded = st.file_uploader(
     "Upload Combined_Data_Productivity_Report.xlsx",
@@ -150,6 +255,14 @@ df_all = load_data(uploaded)
 
 # ── Sidebar Filters ───────────────────────────────────────────
 with st.sidebar:
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:10px; padding:4px 0 16px;">
+        <div style="width:32px; height:32px; border-radius:8px; background:#2563eb;
+                    display:flex; align-items:center; justify-content:center;
+                    font-weight:700; font-size:13px; color:white;">KG</div>
+        <span style="font-size:14px; font-weight:600; color:white;">Kisel Group</span>
+    </div>
+    """, unsafe_allow_html=True)
     st.header("🔍 Filter")
     sel_role = st.multiselect("Role", options=["DC","QC","SE","PE"], default=["DC","QC","SE","PE"])
     accounts_avail = sorted(df_all[df_all["Role"].isin(sel_role)]["Account"].dropna().unique())
