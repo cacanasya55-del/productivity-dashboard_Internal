@@ -44,91 +44,139 @@ if not check_password():
 
 st.markdown("""
 <style>
-    /* ── Korporat theme tokens ──────────────────────────────── */
+    /* ── Dark Mode theme tokens ────────────────────────────── */
     :root {
-        --kg-navy:      #0f2540;
-        --kg-navy-2:    #16314f;
-        --kg-blue:      #2563eb;
-        --kg-blue-dim:  #e8effe;
-        --kg-ink:       #1a2332;
-        --kg-muted:     #64748b;
-        --kg-border:    #e3e7ee;
-        --kg-bg:        #f6f8fb;
+        --kg-bg:        #0b1120;
+        --kg-bg-2:      #0f172a;
+        --kg-panel:     #111a2e;
+        --kg-panel-2:   #15203a;
+        --kg-border:    #243044;
+        --kg-blue:      #3b82f6;
+        --kg-blue-dim:  rgba(59,130,246,0.15);
+        --kg-text:      #e6eaf2;
+        --kg-muted:     #8b95a8;
+        --kg-pill-bg:   #1a2540;
+        --kg-pill-bd:   #2c3a56;
     }
 
     .stApp { background:var(--kg-bg); }
+    .block-container { padding-top:1rem; }
 
+    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background:linear-gradient(180deg, var(--kg-navy) 0%, var(--kg-navy-2) 100%);
+        background:var(--kg-bg-2); border-right:1px solid var(--kg-border);
     }
-    section[data-testid="stSidebar"] * { color:#dbe4f0 !important; }
-    section[data-testid="stSidebar"] .stMultiSelect label,
-    section[data-testid="stSidebar"] .stTextInput label,
+    section[data-testid="stSidebar"] * { color:var(--kg-text) !important; }
     section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 { color:#ffffff !important; font-weight:600 !important; }
-    section[data-testid="stSidebar"] hr { border-color:rgba(255,255,255,0.12) !important; }
+    section[data-testid="stSidebar"] h3 {
+        color:#ffffff !important; font-weight:700 !important;
+        font-size:13px !important; text-transform:uppercase; letter-spacing:0.06em;
+    }
+    section[data-testid="stSidebar"] hr { border-color:var(--kg-border) !important; }
+    section[data-testid="stSidebar"] label { color:var(--kg-muted) !important; font-weight:600 !important; font-size:12px !important; text-transform:uppercase; letter-spacing:0.04em; }
 
-    section[data-testid="stSidebar"] .stMultiSelect div[data-baseweb="select"] > div,
+    /* Pill-style multiselect tags */
+    section[data-testid="stSidebar"] span[data-baseweb="tag"] {
+        background:var(--kg-blue) !important; border-radius:20px !important;
+        border:none !important; color:white !important; font-weight:600 !important;
+    }
+    section[data-testid="stSidebar"] .stMultiSelect div[data-baseweb="select"] > div {
+        background:var(--kg-panel) !important;
+        border:1px solid var(--kg-border) !important;
+        border-radius:10px !important;
+    }
     section[data-testid="stSidebar"] .stTextInput input {
-        background:rgba(255,255,255,0.07) !important;
-        border:1px solid rgba(255,255,255,0.15) !important;
-        border-radius:8px !important;
+        background:var(--kg-panel) !important;
+        border:1px solid var(--kg-border) !important;
+        border-radius:10px !important; color:var(--kg-text) !important;
     }
 
+    /* Top header bar */
     .kg-header {
         display:flex; align-items:center; gap:14px;
-        padding:18px 24px; margin:-1rem -1rem 1.5rem -1rem;
-        background:linear-gradient(135deg, var(--kg-navy) 0%, var(--kg-navy-2) 100%);
-        border-radius:0 0 14px 14px;
+        padding:14px 24px; margin:-1rem -1rem 1.2rem -1rem;
+        background:var(--kg-bg-2); border-bottom:1px solid var(--kg-border);
     }
     .kg-logo {
-        width:46px; height:46px; border-radius:10px;
-        background:linear-gradient(135deg, var(--kg-blue) 0%, #1d4ed8 100%);
+        width:38px; height:38px; border-radius:9px;
+        background:var(--kg-blue);
         display:flex; align-items:center; justify-content:center;
-        font-weight:700; font-size:16px; color:white; flex-shrink:0;
-        letter-spacing:0.02em;
-        box-shadow:0 2px 8px rgba(37,99,235,0.35);
+        font-weight:700; font-size:15px; color:white; flex-shrink:0;
     }
-    .kg-brand-name { font-size:19px; font-weight:700; color:#ffffff; margin:0; letter-spacing:-0.01em; }
-    .kg-brand-sub  { font-size:12.5px; color:#9fb3cc; margin:1px 0 0; font-weight:400; }
+    .kg-brand-name { font-size:17px; font-weight:700; color:#ffffff; margin:0; }
+    .kg-brand-sub  { font-size:12px; color:var(--kg-muted); margin:0; }
     .kg-header-right { margin-left:auto; text-align:right; }
     .kg-header-tag {
-        font-size:11px; color:#9fb3cc; text-transform:uppercase;
-        letter-spacing:0.08em; font-weight:600;
+        font-size:11px; color:var(--kg-muted); text-transform:uppercase;
+        letter-spacing:0.06em; font-weight:600;
     }
 
-    h3 { color:var(--kg-ink) !important; font-weight:700 !important; }
+    /* Headings in main area */
+    h1, h2, h3, h4, h5, p, span, label, div { color:var(--kg-text); }
+    h3 { color:#ffffff !important; font-weight:700 !important; }
+    .stMarkdown, .stCaption, [data-testid="stCaptionContainer"] { color:var(--kg-muted) !important; }
 
+    /* KPI metric cards */
     div[data-testid="stMetric"] {
-        background:#ffffff; border:1px solid var(--kg-border); border-radius:12px;
-        padding:14px 18px; box-shadow:0 1px 2px rgba(15,37,64,0.04);
+        background:var(--kg-panel); border:1px solid var(--kg-border); border-radius:12px;
+        padding:16px 20px;
     }
-    div[data-testid="stMetricLabel"] { color:var(--kg-muted) !important; font-weight:600 !important; }
-    div[data-testid="stMetricValue"] { color:var(--kg-ink) !important; font-weight:700 !important; }
+    div[data-testid="stMetricLabel"] {
+        color:var(--kg-muted) !important; font-weight:600 !important;
+        font-size:11px !important; text-transform:uppercase; letter-spacing:0.06em;
+    }
+    div[data-testid="stMetricValue"] { color:#ffffff !important; font-weight:700 !important; }
 
-    .stTabs [data-baseweb="tab-list"] { gap:4px; border-bottom:2px solid var(--kg-border); }
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] { gap:4px; border-bottom:1px solid var(--kg-border); }
     .stTabs [data-baseweb="tab"] {
         height:42px; border-radius:8px 8px 0 0; color:var(--kg-muted); font-weight:600;
-        padding:0 16px;
+        padding:0 16px; background:transparent;
     }
     .stTabs [aria-selected="true"] {
-        background:var(--kg-blue-dim) !important; color:var(--kg-blue) !important;
+        background:transparent !important; color:var(--kg-blue) !important;
+        border-bottom:2px solid var(--kg-blue) !important;
     }
 
+    /* Containers / charts wrapper look */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background:var(--kg-panel); border:1px solid var(--kg-border) !important;
+        border-radius:12px;
+    }
+
+    /* Plotly chart card wrapper */
+    div[data-testid="stPlotlyChart"] {
+        background:var(--kg-panel); border:1px solid var(--kg-border);
+        border-radius:12px; padding:12px;
+    }
+
+    /* Dataframes */
     div[data-testid="stDataFrame"] {
         border:1px solid var(--kg-border); border-radius:10px; overflow:hidden;
     }
 
+    /* Buttons */
     .stButton button, .stDownloadButton button {
         border-radius:8px !important; font-weight:600 !important;
+        background:var(--kg-blue) !important; color:white !important; border:none !important;
     }
 
-    .metric-card { background:#f8f9fa; border-radius:10px; padding:16px 20px;
+    /* Select boxes in main area */
+    div[data-baseweb="select"] > div {
+        background:var(--kg-panel) !important; border:1px solid var(--kg-border) !important;
+        color:var(--kg-text) !important;
+    }
+
+    /* Info / warning / success boxes */
+    div[data-testid="stAlert"] { border-radius:10px; }
+
+    /* Legacy classes */
+    .metric-card { background:var(--kg-panel); border-radius:10px; padding:16px 20px;
                    border-left:4px solid var(--kg-blue); margin-bottom:8px; }
-    .alert-card  { background:#fff3cd; border-radius:8px; padding:12px 16px;
+    .alert-card  { background:rgba(255,193,7,0.1); border-radius:8px; padding:12px 16px;
                    border-left:4px solid #ffc107; margin:4px 0; }
-    .alert-name  { font-weight:600; color:#856404; }
-    .alert-info  { font-size:12px; color:#856404; }
+    .alert-name  { font-weight:600; color:#ffc107; }
+    .alert-info  { font-size:12px; color:#ffc107; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -163,6 +211,21 @@ RANGE_COLOR = {
     "Unknown":   "#95a5a6",
 }
 PERIOD_ORDER = ["M-01", "M-02", "M-03", "M-04"]
+
+# ── Dark theme template untuk semua chart Plotly ────────────
+import plotly.io as pio
+pio.templates["kg_dark"] = go.layout.Template(
+    layout=go.Layout(
+        paper_bgcolor="#111a2e",
+        plot_bgcolor="#111a2e",
+        font=dict(color="#e6eaf2", family="Inter, sans-serif"),
+        xaxis=dict(gridcolor="#243044", linecolor="#243044", zerolinecolor="#243044"),
+        yaxis=dict(gridcolor="#243044", linecolor="#243044", zerolinecolor="#243044"),
+        legend=dict(bgcolor="rgba(0,0,0,0)"),
+        colorway=["#3b82f6","#22c55e","#f59e0b","#a855f7","#ef4444","#06b6d4"],
+    )
+)
+pio.templates.default = "kg_dark"
 
 # ── Load Data ─────────────────────────────────────────────────
 @st.cache_data
