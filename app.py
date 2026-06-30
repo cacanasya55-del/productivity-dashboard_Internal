@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from io import BytesIO
 import base64
-import hmac
 
 # ── Page config ──────────────────────────────────────────────
 st.set_page_config(
@@ -15,957 +14,1644 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Password Protection ───────────────────────────────────────
-def check_password():
-    if st.session_state.get("authenticated"):
-        return True
-
-    col1, col2, col3 = st.columns([1, 1.2, 1])
-    with col2:
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.title("🔐 Login")
-        st.caption("Masukkan password untuk mengakses dashboard.")
-        with st.form("login_form"):
-            password = st.text_input("Password", type="password", placeholder="Masukkan password...")
-            submitted = st.form_submit_button("Masuk", use_container_width=True)
-        if submitted:
-            correct = st.secrets.get("APP_PASSWORD", "")
-            if correct and hmac.compare_digest(password, correct):
-                st.session_state["authenticated"] = True
-                st.rerun()
-            else:
-                st.error("❌ Password salah. Coba lagi.")
-    return False
-
-if not check_password():
-    st.stop()
-
-
-
 st.markdown("""
 <style>
-    /* ── Dark Mode theme tokens ────────────────────────────── */
-    :root {
-        --kg-bg:        #1c2128;
-        --kg-bg-2:      #22272e;
-        --kg-panel:     #22272e;
-        --kg-panel-2:   #2d333b;
-        --kg-border:    #2d333b;
-        --kg-blue:      #388bfd;
-        --kg-blue-dim:  rgba(56,139,253,0.15);
-        --kg-text:      #e6edf3;
-        --kg-muted:     #8b949e;
-        --kg-pill-bg:   #1a2540;
-        --kg-pill-bd:   #2c3a56;
-    }
 
-    .stApp { background:var(--kg-bg); }
-    .block-container { padding-top:1rem; }
+\&#x20;   .metric-card { background:#f8f9fa; border-radius:10px; padding:16px 20px;
 
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background:var(--kg-bg-2); border-right:1px solid var(--kg-border);
-    }
-    section[data-testid="stSidebar"] * { color:var(--kg-text) !important; }
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        color:#ffffff !important; font-weight:700 !important;
-        font-size:13px !important; text-transform:uppercase; letter-spacing:0.06em;
-    }
-    section[data-testid="stSidebar"] hr { border-color:var(--kg-border) !important; }
-    section[data-testid="stSidebar"] label { color:var(--kg-muted) !important; font-weight:600 !important; font-size:12px !important; text-transform:uppercase; letter-spacing:0.04em; }
+\&#x20;                  border-left:4px solid #4f8bf9; margin-bottom:8px; }
 
-    /* Pill-style multiselect tags */
-    section[data-testid="stSidebar"] span[data-baseweb="tag"] {
-        background:var(--kg-blue) !important; border-radius:20px !important;
-        border:none !important; color:white !important; font-weight:600 !important;
-    }
-    section[data-testid="stSidebar"] .stMultiSelect div[data-baseweb="select"] > div {
-        background:var(--kg-panel) !important;
-        border:1px solid var(--kg-border) !important;
-        border-radius:10px !important;
-    }
-    section[data-testid="stSidebar"] .stTextInput input {
-        background:var(--kg-panel) !important;
-        border:1px solid var(--kg-border) !important;
-        border-radius:10px !important; color:var(--kg-text) !important;
-    }
+\&#x20;   .alert-card  { background:#fff3cd; border-radius:8px; padding:12px 16px;
 
-    /* Top header bar */
-    .kg-header {
-        display:flex; align-items:center; gap:14px;
-        padding:14px 24px; margin:-1rem -1rem 1.2rem -1rem;
-        background:var(--kg-bg-2); border-bottom:1px solid var(--kg-border);
-    }
-    .kg-logo {
-        width:38px; height:38px; border-radius:9px;
-        background:var(--kg-blue);
-        display:flex; align-items:center; justify-content:center;
-        font-weight:700; font-size:15px; color:white; flex-shrink:0;
-    }
-    .kg-brand-name { font-size:17px; font-weight:700; color:#ffffff; margin:0; }
-    .kg-brand-sub  { font-size:12px; color:var(--kg-muted); margin:0; }
-    .kg-header-right { margin-left:auto; text-align:right; }
-    .kg-header-tag {
-        font-size:11px; color:var(--kg-muted); text-transform:uppercase;
-        letter-spacing:0.06em; font-weight:600;
-    }
+\&#x20;                  border-left:4px solid #ffc107; margin:4px 0; }
 
-    /* Headings & body text — force light color everywhere in main area */
-    .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
-    .main p, .main span, .main label, .main li,
-    [data-testid="stMarkdownContainer"] p,
-    [data-testid="stMarkdownContainer"] span,
-    [data-testid="stMarkdownContainer"] li {
-        color:var(--kg-text) !important;
-    }
-    h3 { color:#ffffff !important; font-weight:700 !important; }
-    .stCaption, [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {
-        color:var(--kg-muted) !important;
-    }
+\&#x20;   .alert-name  { font-weight:600; color:#856404; }
 
-    /* File uploader widget */
-    [data-testid="stFileUploader"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border);
-        border-radius:10px; padding:8px;
-    }
-    [data-testid="stFileUploader"] section {
-        background:var(--kg-panel-2) !important; border:1px dashed var(--kg-border) !important;
-    }
-    [data-testid="stFileUploaderDropzoneInstructions"] span,
-    [data-testid="stFileUploaderDropzoneInstructions"] div,
-    [data-testid="stFileUploaderDropzoneInstructions"] small {
-        color:var(--kg-text) !important;
-    }
-    [data-testid="stFileUploaderDropzoneInstructions"] small { color:var(--kg-muted) !important; }
-    [data-testid="stFileUploader"] button {
-        background:var(--kg-blue) !important; color:white !important; border:none !important;
-    }
+\&#x20;   .alert-info  { font-size:12px; color:#856404; }
 
-    /* Widget labels (selectbox, text_input, multiselect, etc. in main area) */
-    [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label {
-        color:var(--kg-text) !important; font-weight:600 !important;
-    }
 
-    /* st.info / st.warning / st.success / st.error text */
-    div[data-testid="stAlert"] p, div[data-testid="stAlert"] span {
-        color:var(--kg-text) !important;
-    }
+""", unsafe\_allow\_html=True)
 
-    /* Selectbox selected value text */
-    div[data-baseweb="select"] span { color:var(--kg-text) !important; }
 
-    /* Subheader text specifically */
-    [data-testid="stHeading"] p, [data-testid="stHeading"] span {
-        color:#ffffff !important;
-    }
 
-    /* KPI metric cards */
-    div[data-testid="stMetric"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border); border-radius:12px;
-        padding:16px 20px;
-    }
-    div[data-testid="stMetricLabel"] {
-        color:var(--kg-muted) !important; font-weight:600 !important;
-        font-size:11px !important; text-transform:uppercase; letter-spacing:0.06em;
-    }
-    div[data-testid="stMetricValue"] { color:#ffffff !important; font-weight:700 !important; }
+\# ── Constants ─────────────────────────────────────────────────
 
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] { gap:4px; border-bottom:1px solid var(--kg-border); }
-    .stTabs [data-baseweb="tab"] {
-        height:42px; border-radius:8px 8px 0 0; color:var(--kg-muted); font-weight:600;
-        padding:0 16px; background:transparent;
-    }
-    .stTabs [aria-selected="true"] {
-        background:transparent !important; color:var(--kg-blue) !important;
-        border-bottom:2px solid var(--kg-blue) !important;
-    }
+SHEET\_ROLE\_MAP = {
 
-    /* Containers / charts wrapper look */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border) !important;
-        border-radius:12px;
-    }
+&#x20;   "DC Productivity": "DC",
 
-    /* Plotly chart card wrapper */
-    div[data-testid="stPlotlyChart"] {
-        background:var(--kg-panel); border:1px solid var(--kg-border);
-        border-radius:12px; padding:12px;
-    }
+&#x20;   "QC Productivity": "QC",
 
-    /* Dataframes */
-    div[data-testid="stDataFrame"] {
-        border:1px solid var(--kg-border); border-radius:10px; overflow:hidden;
-    }
+&#x20;   "SE Productivity": "SE",
 
-    /* Buttons */
-    .stButton button, .stDownloadButton button {
-        border-radius:8px !important; font-weight:600 !important;
-        background:var(--kg-blue) !important; color:white !important; border:none !important;
-    }
+&#x20;   "PE Productivity": "PE",
 
-    /* Select boxes in main area */
-    div[data-baseweb="select"] > div {
-        background:var(--kg-panel) !important; border:1px solid var(--kg-border) !important;
-        color:var(--kg-text) !important;
-    }
-
-    /* Info / warning / success boxes */
-    div[data-testid="stAlert"] { border-radius:10px; }
-
-    /* Legacy classes */
-    .metric-card { background:var(--kg-panel); border-radius:10px; padding:16px 20px;
-                   border-left:4px solid var(--kg-blue); margin-bottom:8px; }
-    .alert-card  { background:rgba(255,193,7,0.1); border-radius:8px; padding:12px 16px;
-                   border-left:4px solid #ffc107; margin:4px 0; }
-    .alert-name  { font-weight:600; color:#ffc107; }
-    .alert-info  { font-size:12px; color:#ffc107; }
-</style>
-""", unsafe_allow_html=True)
-
-# ── Header / Brand ───────────────────────────────────────────
-# NOTE: ganti "KG" dan teks di bawah ini dengan logo asli perusahaan
-# kapan saja siap — cukup edit bagian ini saja.
-st.markdown("""
-<div class="kg-header">
-    <div class="kg-logo">KG</div>
-    <div>
-        <p class="kg-brand-name">Kisel Group</p>
-        <p class="kg-brand-sub">Productivity Monitoring System</p>
-    </div>
-    <div class="kg-header-right">
-        <p class="kg-header-tag">Internal Dashboard</p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Constants ─────────────────────────────────────────────────
-SHEET_ROLE_MAP = {
-    "DC Productivity": "DC",
-    "QC Productivity": "QC",
-    "SE Productivity": "SE",
-    "PE Productivity": "PE",
 }
-RANGE_COLOR = {
-    "Excellent": "#27ae60",
-    "Normal":    "#f39c12",
-    "Poor":      "#e74c3c",
-    "Achieved":  "#27ae60",
-    "Unknown":   "#95a5a6",
+
+RANGE\_COLOR = {
+
+&#x20;   "Excellent": "#27ae60",
+
+&#x20;   "Normal":    "#f39c12",
+
+&#x20;   "Poor":      "#e74c3c",
+
+&#x20;   "Achieved":  "#27ae60",
+
+&#x20;   "Unknown":   "#95a5a6",
+
 }
-PERIOD_ORDER = ["M-01", "M-02", "M-03", "M-04"]
 
-# ── Dark theme template untuk semua chart Plotly ────────────
-import plotly.io as pio
-pio.templates["kg_dark"] = go.layout.Template(
-    layout=go.Layout(
-        paper_bgcolor="#22272e",
-        plot_bgcolor="#22272e",
-        font=dict(color="#e6edf3", family="Inter, sans-serif"),
-        xaxis=dict(gridcolor="#2d333b", linecolor="#2d333b", zerolinecolor="#2d333b"),
-        yaxis=dict(gridcolor="#2d333b", linecolor="#2d333b", zerolinecolor="#2d333b"),
-        legend=dict(bgcolor="rgba(0,0,0,0)"),
-        colorway=["#388bfd","#5fd99e","#e3b341","#a371f7","#f47174","#39c5cf"],
-        margin=dict(t=50, b=40, l=50, r=20),
-    )
+PERIOD\_ORDER = \["M-01", "M-02", "M-03", "M-04"]
+
+
+
+\# ── Load Data ─────────────────────────────────────────────────
+
+@st.cache\_data
+
+def load\_data(file):
+
+&#x20;   frames = \[]
+
+&#x20;   xls = pd.ExcelFile(file)
+
+&#x20;   for sheet, role in SHEET\_ROLE\_MAP.items():
+
+&#x20;       if sheet not in xls.sheet\_names:
+
+&#x20;           continue
+
+&#x20;       df = pd.read\_excel(file, sheet\_name=sheet)
+
+&#x20;       df = df.rename(columns=lambda c: str(c).strip())
+
+
+
+&#x20;       score\_candidates = \["Total % Ach.", "Productivity", "Total Score", "Achievement", "Onsite Clock-In"]
+
+&#x20;       df\["Score"] = 0.0
+
+&#x20;       for col in score\_candidates:
+
+&#x20;           if col in df.columns:
+
+&#x20;               df\["Score"] = pd.to\_numeric(df\[col], errors="coerce").fillna(0)
+
+&#x20;               break
+
+
+
+&#x20;       if "Productivity Range" not in df.columns:
+
+&#x20;           df\["Productivity Range"] = df.get("Productivity", "Unknown")
+
+&#x20;       if "Region" not in df.columns:
+
+&#x20;           df\["Region"] = "–"
+
+
+
+&#x20;       df\["Role"]  = role
+
+&#x20;       df\["Sheet"] = sheet
+
+&#x20;       for c in \["Account", "Period", "Period Status", "Payment Coef.", "Name ID", "Uniq-ID"]:
+
+&#x20;           if c not in df.columns:
+
+&#x20;               df\[c] = None
+
+&#x20;       frames.append(df)
+
+
+
+&#x20;   all\_data = pd.concat(frames, ignore\_index=True)
+
+&#x20;   all\_data\["Score"]              = pd.to\_numeric(all\_data\["Score"], errors="coerce").fillna(0)
+
+&#x20;   all\_data\["Payment Coef."]      = pd.to\_numeric(all\_data\["Payment Coef."], errors="coerce")
+
+&#x20;   all\_data\["Productivity Range"] = all\_data\["Productivity Range"].fillna("Unknown")
+
+&#x20;   all\_data\["Period Status"]      = all\_data\["Period Status"].fillna("Unknown")
+
+&#x20;   all\_data\["Account"]            = all\_data\["Account"].fillna("Unknown")
+
+&#x20;   all\_data\["Region"]             = all\_data\["Region"].fillna("–")
+
+&#x20;   all\_data\["Name Clean"]         = (all\_data\["Name ID"]
+
+&#x20;                                       .astype(str)
+
+&#x20;                                       .str.replace(r"\\s+wx\\d+", "", regex=True)
+
+&#x20;                                       .str.strip())
+
+&#x20;   return all\_data
+
+
+
+def highlight\_range(val):
+
+&#x20;   colors = {
+
+&#x20;       "Excellent": "background-color:#d5f5e3; color:#1e8449",
+
+&#x20;       "Normal":    "background-color:#fdebd0; color:#784212",
+
+&#x20;       "Poor":      "background-color:#fadbd8; color:#922b21",
+
+&#x20;       "Achieved":  "background-color:#d5f5e3; color:#1e8449",
+
+&#x20;   }
+
+&#x20;   return colors.get(val, "")
+
+
+
+def highlight\_coef(val):
+
+&#x20;   try:
+
+&#x20;       v = float(val)
+
+
+
+&#x20;       if v >= 1.5:
+
+&#x20;           return "background-color:#d5f5e3; color:#1e8449; font-weight:600"
+
+
+
+&#x20;       elif v >= 1.0:
+
+&#x20;           return "background-color:#fdebd0; color:#784212"
+
+
+
+&#x20;       elif v > 0:
+
+&#x20;           return "background-color:#fadbd8; color:#922b21"
+
+
+
+&#x20;   except:
+
+&#x20;       pass
+
+
+
+&#x20;   return ""
+
+
+
+
+
+\# ══════════════════════════════════════════════
+
+\# REPORT CARD HELPERS
+
+\# ══════════════════════════════════════════════
+
+
+
+def generate\_insight(df\_person):
+
+
+
+&#x20;   scores=(
+
+&#x20;       df\_person
+
+&#x20;       .sort\_values("Period")\["Score"]
+
+&#x20;       .reset\_index(drop=True)
+
+&#x20;   )
+
+
+
+&#x20;   if len(scores)<2:
+
+&#x20;       return "📊 Data periode belum cukup"
+
+
+
+&#x20;   first=scores.iloc\[0]
+
+&#x20;   last=scores.iloc\[-1]
+
+
+
+&#x20;   if first>0:
+
+&#x20;       change=((last-first)/first)\*100
+
+&#x20;   else:
+
+&#x20;       change=0
+
+
+
+&#x20;   if (
+
+&#x20;       df\_person\["Productivity Range"]
+
+&#x20;       .isin(\["Poor"])
+
+&#x20;       .all()
+
+&#x20;   ):
+
+&#x20;       return "⚠️ Konsisten Poor di seluruh periode"
+
+
+
+&#x20;   if change>=20:
+
+&#x20;       return f"📈 Score meningkat {change:.0f}% sejak periode awal"
+
+
+
+&#x20;   elif change<=-20:
+
+&#x20;       return f"📉 Score turun {abs(change):.0f}% dari periode awal"
+
+
+
+&#x20;   return "✓ Performa relatif stabil"
+
+
+
+
+
+def get\_action(avg\_score,coef,status):
+
+
+
+&#x20;   if status=="Poor":
+
+&#x20;       return "🔴 Attention"
+
+
+
+&#x20;   if avg\_score<1:
+
+&#x20;       return "🔴 Attention"
+
+
+
+&#x20;   if coef>=1.5:
+
+&#x20;       return "🟢 Maintain"
+
+
+
+&#x20;   if avg\_score>=2:
+
+&#x20;       return "🔵 Improving"
+
+
+
+&#x20;   return "🟡 Monitor"
+
+
+
+
+
+def render\_report\_card(df\_person):
+
+
+
+&#x20;   info=df\_person.iloc\[0]
+
+
+
+&#x20;   uid=str(info\["Uniq-ID"])
+
+&#x20;   name=info\["Name Clean"]
+
+
+
+&#x20;   initials="".join(
+
+&#x20;       \[x\[0].upper() for x in str(name).split()\[:2]]
+
+&#x20;   )
+
+
+
+&#x20;   avg\_score=df\_person\["Score"].mean()
+
+
+
+&#x20;   max\_score=df\_person\["Score"].max()
+
+
+
+&#x20;   periods=df\_person\["Period"].nunique()
+
+
+
+&#x20;   coef\_data=(
+
+&#x20;       df\_person\["Payment Coef."]
+
+&#x20;       .dropna()
+
+&#x20;   )
+
+
+
+&#x20;   coef=(
+
+&#x20;       coef\_data.iloc\[-1]
+
+&#x20;       if len(coef\_data)>0
+
+&#x20;       else 0
+
+&#x20;   )
+
+
+
+&#x20;   status\_mode=(
+
+&#x20;       df\_person\["Productivity Range"]
+
+&#x20;       .mode()
+
+&#x20;   )
+
+
+
+&#x20;   status=(
+
+&#x20;       status\_mode.iloc\[0]
+
+&#x20;       if len(status\_mode)>0
+
+&#x20;       else "Unknown"
+
+&#x20;   )
+
+
+
+&#x20;   insight=generate\_insight(df\_person)
+
+
+
+&#x20;   action=get\_action(
+
+&#x20;       avg\_score,
+
+&#x20;       coef,
+
+&#x20;       status
+
+&#x20;   )
+
+
+
+&#x20;   badge\_color={
+
+&#x20;       "Excellent":"#27ae60",
+
+&#x20;       "Normal":"#f39c12",
+
+&#x20;       "Poor":"#e74c3c",
+
+&#x20;       "Unknown":"#95a5a6"
+
+&#x20;   }
+
+
+
+&#x20;   badge=badge\_color.get(
+
+&#x20;       status,
+
+&#x20;       "#95a5a6"
+
+&#x20;   )
+
+
+
+&#x20;   st.markdown(
+
+&#x20;       f"""
+
+&#x20;       <div style="
+
+&#x20;       background:white;
+
+&#x20;       border-radius:16px;
+
+&#x20;       padding:15px;
+
+&#x20;       border:1px solid #ddd;
+
+&#x20;       box-shadow:0px 2px 8px rgba(0,0,0,.08);
+
+&#x20;       margin-bottom:10px;
+
+&#x20;       ">
+
+
+
+&#x20;       <div style="
+
+&#x20;       display:flex;
+
+&#x20;       align-items:center;
+
+&#x20;       gap:10px;
+
+&#x20;       ">
+
+
+
+&#x20;       <div style="
+
+&#x20;       width:45px;
+
+&#x20;       height:45px;
+
+&#x20;       border-radius:50%;
+
+&#x20;       background:#4f8bf9;
+
+&#x20;       color:white;
+
+&#x20;       text-align:center;
+
+&#x20;       line-height:45px;
+
+&#x20;       font-weight:bold;
+
+&#x20;       ">
+
+&#x20;       {initials}
+
+&#x20;       </div>
+
+
+
+&#x20;       <div>
+
+
+
+&#x20;       <div style="
+
+&#x20;       font-weight:700;
+
+&#x20;       font-size:15px;
+
+&#x20;       ">
+
+&#x20;       {name}
+
+&#x20;       </div>
+
+
+
+&#x20;       <span style="
+
+&#x20;       background:{badge};
+
+&#x20;       color:white;
+
+&#x20;       border-radius:20px;
+
+&#x20;       padding:4px 10px;
+
+&#x20;       font-size:11px;
+
+&#x20;       ">
+
+&#x20;       {status}
+
+&#x20;       </span>
+
+
+
+&#x20;       </div>
+
+
+
+&#x20;       </div>
+
+
+
+&#x20;       <br>
+
+
+
+&#x20;       <div style="
+
+&#x20;       display:grid;
+
+&#x20;       grid-template-columns:1fr 1fr;
+
+&#x20;       gap:8px;
+
+&#x20;       ">
+
+
+
+&#x20;       <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center">
+
+&#x20;       Avg<br>
+
+&#x20;       **{avg\_score:.2f}**
+
+&#x20;       </div>
+
+
+
+&#x20;       <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center">
+
+&#x20;       Max<br>
+
+&#x20;       **{max\_score:.2f}**
+
+&#x20;       </div>
+
+
+
+&#x20;       <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center">
+
+&#x20;       Coef<br>
+
+&#x20;       **{coef:.1f}**
+
+&#x20;       </div>
+
+
+
+&#x20;       <div style="background:#f8f9fa;padding:8px;border-radius:8px;text-align:center">
+
+&#x20;       Active<br>
+
+&#x20;       **{periods}**
+
+&#x20;       </div>
+
+
+
+&#x20;       </div>
+
+
+
+&#x20;       </div>
+
+&#x20;       """,
+
+&#x20;       unsafe\_allow\_html=True
+
+&#x20;   )
+
+
+
+&#x20;   trend=(
+
+&#x20;       df\_person
+
+&#x20;       .groupby("Period")
+
+&#x20;       .agg(
+
+&#x20;           Score=("Score","max")
+
+&#x20;       )
+
+&#x20;       .reset\_index()
+
+&#x20;       .sort\_values("Period")
+
+&#x20;   )
+
+
+
+&#x20;   fig=px.bar(
+
+&#x20;       trend,
+
+&#x20;       x="Period",
+
+&#x20;       y="Score",
+
+&#x20;       height=120
+
+&#x20;   )
+
+
+
+&#x20;   fig.update\_layout(
+
+&#x20;       margin=dict(
+
+&#x20;           l=0,
+
+&#x20;           r=0,
+
+&#x20;           t=0,
+
+&#x20;           b=0
+
+&#x20;       ),
+
+&#x20;       xaxis\_title=None,
+
+&#x20;       yaxis\_title=None,
+
+&#x20;       showlegend=False
+
+&#x20;   )
+
+
+
+&#x20;   st.plotly\_chart(
+
+&#x20;       fig,
+
+&#x20;       use\_container\_width=True,
+
+&#x20;       key=f"chart\_{uid}"
+
+&#x20;   )
+
+
+
+&#x20;   st.info(
+
+&#x20;       f"{insight}\\n\\n🎯 {action}"
+
+&#x20;   )
+
+
+
+\# ══════════════════════════════════════════════════════════════
+
+\#  MAIN APP
+
+\# ══════════════════════════════════════════════════════════════
+
+st.title("📊 Productivity Monitoring Dashboard")
+
+st.caption("Upload file Excel, gunakan filter sidebar, dan eksplorasi data produktivitas tim.")
+
+
+
+uploaded = st.file\_uploader(
+
+&#x20;   "Upload Combined\_Data\_Productivity\_Report.xlsx",
+
+&#x20;   type=\["xlsx"],
+
+&#x20;   help="File harus punya sheet: DC Productivity, QC Productivity, SE Productivity, PE Productivity"
+
 )
-pio.templates.default = "kg_dark"
 
-# ── Load Data ─────────────────────────────────────────────────
-@st.cache_data
-def load_data(file):
-    frames = []
-    xls = pd.ExcelFile(file)
-    for sheet, role in SHEET_ROLE_MAP.items():
-        if sheet not in xls.sheet_names:
-            continue
-        df = pd.read_excel(file, sheet_name=sheet)
-        df = df.rename(columns=lambda c: str(c).strip())
-
-        # Score per role — pilih kolom yang paling relevan
-        ROLE_SCORE_COL = {
-            "DC": "Total % Ach.",
-            "QC": "Achievement",
-            "SE": "Onsite Clock-In",
-            "PE": "Total Score",
-        }
-        score_col = ROLE_SCORE_COL.get(role, None)
-        df["Score"] = 0.0
-        if score_col and score_col in df.columns:
-            df["Score"] = pd.to_numeric(df[score_col], errors="coerce").fillna(0)
-        else:
-            for col in ["Total % Ach.", "Achievement", "Total Score", "Onsite Clock-In", "Productivity"]:
-                if col in df.columns:
-                    df["Score"] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-                    break
-
-        if "Productivity Range" not in df.columns:
-            df["Productivity Range"] = df.get("Productivity", "Unknown")
-        if "Region" not in df.columns:
-            df["Region"] = "–"
-
-        df["Role"]  = role
-        df["Sheet"] = sheet
-        for c in ["Account", "Period", "Period Status", "Payment Coef.", "Name ID", "Uniq-ID"]:
-            if c not in df.columns:
-                df[c] = None
-        frames.append(df)
-
-    all_data = pd.concat(frames, ignore_index=True)
-    all_data["Score"]              = pd.to_numeric(all_data["Score"], errors="coerce").fillna(0)
-    all_data["Payment Coef."]      = pd.to_numeric(all_data["Payment Coef."], errors="coerce")
-    all_data["Productivity Range"] = all_data["Productivity Range"].fillna("Unknown")
-    all_data["Period Status"]      = all_data["Period Status"].fillna("Unknown")
-    all_data["Account"]            = all_data["Account"].fillna("Unknown")
-    all_data["Region"]             = all_data["Region"].fillna("–")
-    all_data["Name Clean"]         = (all_data["Name ID"]
-                                        .astype(str)
-                                        .str.replace(r"\s+wx\d+", "", regex=True)
-                                        .str.strip())
-    return all_data
-
-def highlight_range(val):
-    colors = {
-        "Excellent": "background-color:#d5f5e3; color:#1e8449",
-        "Normal":    "background-color:#fdebd0; color:#784212",
-        "Poor":      "background-color:#fadbd8; color:#922b21",
-        "Achieved":  "background-color:#d5f5e3; color:#1e8449",
-    }
-    return colors.get(val, "")
-
-def highlight_coef(val):
-    try:
-        v = float(val)
-        if v >= 1.5:   return "background-color:#d5f5e3; color:#1e8449; font-weight:600"
-        elif v >= 1.0: return "background-color:#fdebd0; color:#784212"
-        elif v > 0:    return "background-color:#fadbd8; color:#922b21"
-    except:
-        pass
-    return ""
-
-# ══════════════════════════════════════════════════════════════
-#  MAIN APP
-# ══════════════════════════════════════════════════════════════
-st.markdown("##### 📊 Dashboard Monitoring Produktivitas")
-st.caption("Upload file Excel, gunakan filter di sidebar, dan eksplorasi data produktivitas tim.")
-
-uploaded = st.file_uploader(
-    "Upload Combined_Data_Productivity_Report.xlsx",
-    type=["xlsx"],
-    help="File harus punya sheet: DC Productivity, QC Productivity, SE Productivity, PE Productivity"
-)
 if uploaded is None:
-    st.info("👆 Upload file Excel untuk memulai.")
-    st.stop()
 
-df_all = load_data(uploaded)
+&#x20;   st.info("👆 Upload file Excel untuk memulai.")
 
-# ── Sidebar Filters ───────────────────────────────────────────
+&#x20;   st.stop()
+
+
+
+df\_all = load\_data(uploaded)
+
+
+
+\# ── Sidebar Filters ───────────────────────────────────────────
+
 with st.sidebar:
-    st.markdown("""
-    <div style="display:flex; align-items:center; gap:10px; padding:4px 0 16px;">
-        <div style="width:32px; height:32px; border-radius:8px; background:#2563eb;
-                    display:flex; align-items:center; justify-content:center;
-                    font-weight:700; font-size:13px; color:white;">KG</div>
-        <span style="font-size:14px; font-weight:600; color:white;">Kisel Group</span>
-    </div>
-    """, unsafe_allow_html=True)
-    st.header("🔍 Filter")
-    sel_role = st.multiselect("Role", options=["DC","QC","SE","PE"], default=["DC","QC","SE","PE"])
-    accounts_avail = sorted(df_all[df_all["Role"].isin(sel_role)]["Account"].dropna().unique())
-    sel_account = st.multiselect("Account / Client", options=accounts_avail, default=accounts_avail)
-    periods_avail = sorted(df_all["Period"].dropna().unique())
-    sel_period  = st.multiselect("Periode", options=periods_avail, default=periods_avail)
-    sel_status  = st.multiselect("Status Periode",
-                                  options=["Ended","Ongoing","Not Start","Unknown"],
-                                  default=["Ended","Ongoing"])
-    name_q = st.text_input("🔎 Cari Nama", placeholder="ketik sebagian nama...")
-    regions_avail = sorted(df_all[df_all["Role"].isin(sel_role)]["Region"].dropna().unique())
-    sel_region = st.multiselect("Region", options=regions_avail, default=regions_avail)
-    st.divider()
-    st.caption("💡 Pilih lebih dari satu opsi dengan klik.")
 
-# ── Apply Filter ──────────────────────────────────────────────
+&#x20;   st.header("🔍 Filter")
+
+&#x20;   sel\_role = st.multiselect("Role", options=\["DC","QC","SE","PE"], default=\["DC","QC","SE","PE"])
+
+&#x20;   accounts\_avail = sorted(df\_all\[df\_all\["Role"].isin(sel\_role)]\["Account"].dropna().unique())
+
+&#x20;   sel\_account = st.multiselect("Account / Client", options=accounts\_avail, default=accounts\_avail)
+
+&#x20;   periods\_avail = sorted(df\_all\["Period"].dropna().unique())
+
+&#x20;   sel\_period  = st.multiselect("Periode", options=periods\_avail, default=periods\_avail)
+
+&#x20;   sel\_status  = st.multiselect("Status Periode",
+
+&#x20;                                 options=\["Ended","Ongoing","Not Start","Unknown"],
+
+&#x20;                                 default=\["Ended","Ongoing"])
+
+&#x20;   name\_q = st.text\_input("🔎 Cari Nama", placeholder="ketik sebagian nama...")
+
+&#x20;   regions\_avail = sorted(df\_all\[df\_all\["Role"].isin(sel\_role)]\["Region"].dropna().unique())
+
+&#x20;   sel\_region = st.multiselect("Region", options=regions\_avail, default=regions\_avail)
+
+&#x20;   st.divider()
+
+&#x20;   st.caption("💡 Pilih lebih dari satu opsi dengan klik.")
+
+
+
+\# ── Apply Filter ──────────────────────────────────────────────
+
 mask = (
-    df_all["Role"].isin(sel_role) &
-    df_all["Account"].isin(sel_account) &
-    df_all["Period"].isin(sel_period) &
-    df_all["Period Status"].isin(sel_status) &
-    df_all["Region"].isin(sel_region)
+
+&#x20;   df\_all\["Role"].isin(sel\_role) \&
+
+&#x20;   df\_all\["Account"].isin(sel\_account) \&
+
+&#x20;   df\_all\["Period"].isin(sel\_period) \&
+
+&#x20;   df\_all\["Period Status"].isin(sel\_status) \&
+
+&#x20;   df\_all\["Region"].isin(sel\_region)
+
 )
-df = df_all[mask].copy()
-if name_q.strip():
-    df = df[df["Name Clean"].str.contains(name_q.strip(), case=False, na=False)]
+
+df = df\_all\[mask].copy()
+
+if name\_q.strip():
+
+&#x20;   df = df\[df\["Name Clean"].str.contains(name\_q.strip(), case=False, na=False)]
+
+
 
 if df.empty:
-    st.warning("⚠️ Tidak ada data untuk kombinasi filter ini.")
-    st.stop()
 
-# ── Tabs ──────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Overview",
-    "⚠️ Perlu Perhatian",
-    "📅 Perbandingan Periode",
-    "👤 Detail Individu",
-    "💰 Koefisien Pembayaran",
+&#x20;   st.warning("⚠️ Tidak ada data untuk kombinasi filter ini.")
+
+&#x20;   st.stop()
+
+
+
+\# ── Tabs ──────────────────────────────────────────────────────
+
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(\[
+
+&#x20;   "📊 Overview",
+
+&#x20;   "⚠️ Perlu Perhatian",
+
+&#x20;   "📅 Perbandingan Periode",
+
+&#x20;   "👤 Detail Individu",
+
+&#x20;   "💰 Koefisien Pembayaran",
+
+&#x20;   "🪪 Report Cards",
+
 ])
 
-# ══════════════════════════════════════════════════════════════
-#  TAB 1 — OVERVIEW
-# ══════════════════════════════════════════════════════════════
+
+
+\# ══════════════════════════════════════════════════════════════
+
+\#  TAB 1 — OVERVIEW
+
+\# ══════════════════════════════════════════════════════════════
+
 with tab1:
-    per_person = df.groupby("Uniq-ID").agg(
-        Score=("Score", "max"),
-        Prod_Range=("Productivity Range", lambda x: x.mode()[0] if not x.mode().empty else "Unknown"),
-    ).reset_index()
 
-    total_people = per_person["Uniq-ID"].nunique()
-    avg_score    = per_person["Score"].mean()
-    cnt_excel    = (per_person["Prod_Range"] == "Excellent").sum()
-    cnt_poor     = (per_person["Prod_Range"] == "Poor").sum()
-    pct_excel    = cnt_excel / total_people * 100 if total_people else 0
+&#x20;   per\_person = df.groupby("Uniq-ID").agg(
 
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("👥 Total Individu",  f"{total_people:,}")
-    k2.metric("📈 Avg Score",       f"{avg_score:.2f}")
-    k3.metric("🏆 Excellent",       f"{cnt_excel}  ({pct_excel:.0f}%)")
-    k4.metric("⚠️ Poor",            f"{cnt_poor}")
-    st.divider()
+&#x20;       Score=("Score", "max"),
 
-    c1, c2 = st.columns(2)
-    with c1:
-        st.subheader("Distribusi Productivity Range per Role")
-        dist = (df.drop_duplicates(subset=["Uniq-ID","Period"])
-                  .groupby(["Role","Productivity Range"])
-                  .size().reset_index(name="Jumlah"))
-        fig = px.bar(dist, x="Role", y="Jumlah", color="Productivity Range",
-                     color_discrete_map=RANGE_COLOR, barmode="stack", text="Jumlah")
-        fig.update_traces(textposition="inside")
-        fig.update_layout(height=360, legend_title="Range", margin=dict(t=20))
-        fig.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig, use_container_width=True)
+&#x20;       Prod\_Range=("Productivity Range", lambda x: x.mode()\[0] if not x.mode().empty else "Unknown"),
 
-    with c2:
-        st.subheader("Tren Rata-rata Score per Periode")
-        trend = (df.groupby(["Period","Role"])["Score"].mean().reset_index().sort_values("Period"))
-        fig2 = px.line(trend, x="Period", y="Score", color="Role",
-                       markers=True, category_orders={"Period": PERIOD_ORDER})
-        fig2.update_layout(height=360, margin=dict(t=20))
-        fig2.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig2, use_container_width=True)
+&#x20;   ).reset\_index()
 
-    c3, c4 = st.columns(2)
-    with c3:
-        st.subheader("🏆 Top 20 Individu — Score Tertinggi")
-        top = (df.groupby(["Uniq-ID","Name Clean","Role","Account"])["Score"]
-                 .max().reset_index().sort_values("Score", ascending=False).head(20))
-        fig3 = px.bar(top, x="Score", y="Name Clean", orientation="h",
-                      color="Role", text=top["Score"].round(2), hover_data=["Account","Role"])
-        fig3.update_traces(texttemplate="%{text}", textposition="outside")
-        fig3.update_layout(height=500, yaxis={"categoryorder":"total ascending"}, margin=dict(t=20))
-        fig3.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig3, use_container_width=True)
 
-    with c4:
-        st.subheader("🏢 Rata-rata Score per Account")
-        acct = (df.groupby("Account")["Score"].mean().reset_index().sort_values("Score", ascending=False))
-        fig4 = px.bar(acct, x="Account", y="Score", color="Score",
-                      color_continuous_scale="RdYlGn", text=acct["Score"].round(2))
-        fig4.update_traces(textposition="outside")
-        fig4.update_layout(height=500, margin=dict(t=20))
-        fig4.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig4, use_container_width=True)
 
-    c5, c6 = st.columns(2)
-    with c5:
-        st.subheader("⏱️ Status Periode")
-        stat = (df.drop_duplicates(subset=["Uniq-ID","Period"])
-                  .groupby("Period Status").size().reset_index(name="Jumlah"))
-        fig5 = px.pie(stat, names="Period Status", values="Jumlah", color="Period Status",
-                      color_discrete_map={"Ended":"#27ae60","Ongoing":"#f39c12",
-                                          "Not Start":"#95a5a6","Unknown":"#bdc3c7"})
-        fig5.update_layout(height=360, margin=dict(t=20))
-        fig5.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig5, use_container_width=True)
+&#x20;   total\_people = per\_person\["Uniq-ID"].nunique()
 
-    with c6:
-        st.subheader("🗺️ Sebaran per Region")
-        if df["Region"].nunique() > 1:
-            reg = (df.drop_duplicates(subset=["Uniq-ID","Period"])
-                     .groupby(["Region","Productivity Range"]).size().reset_index(name="Jumlah"))
-            fig6 = px.bar(reg, x="Region", y="Jumlah", color="Productivity Range",
-                          color_discrete_map=RANGE_COLOR, barmode="stack", text="Jumlah")
-            fig6.update_traces(textposition="inside")
-            fig6.update_layout(height=360, margin=dict(t=20))
-            fig6.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-            st.plotly_chart(fig6, use_container_width=True)
-        else:
-            st.info("Data Region hanya tersedia untuk role QC, SE, dan PE.")
+&#x20;   avg\_score    = per\_person\["Score"].mean()
 
-# ══════════════════════════════════════════════════════════════
-#  TAB 2 — PERLU PERHATIAN
-# ══════════════════════════════════════════════════════════════
+&#x20;   cnt\_excel    = (per\_person\["Prod\_Range"] == "Excellent").sum()
+
+&#x20;   cnt\_poor     = (per\_person\["Prod\_Range"] == "Poor").sum()
+
+&#x20;   pct\_excel    = cnt\_excel / total\_people \* 100 if total\_people else 0
+
+
+
+&#x20;   k1, k2, k3, k4 = st.columns(4)
+
+&#x20;   k1.metric("👥 Total Individu",  f"{total\_people:,}")
+
+&#x20;   k2.metric("📈 Avg Score",       f"{avg\_score:.2f}")
+
+&#x20;   k3.metric("🏆 Excellent",       f"{cnt\_excel}  ({pct\_excel:.0f}%)")
+
+&#x20;   k4.metric("⚠️ Poor",            f"{cnt\_poor}")
+
+&#x20;   st.divider()
+
+
+
+&#x20;   c1, c2 = st.columns(2)
+
+&#x20;   with c1:
+
+&#x20;       st.subheader("Distribusi Productivity Range per Role")
+
+&#x20;       dist = (df.drop\_duplicates(subset=\["Uniq-ID","Period"])
+
+&#x20;                 .groupby(\["Role","Productivity Range"])
+
+&#x20;                 .size().reset\_index(name="Jumlah"))
+
+&#x20;       fig = px.bar(dist, x="Role", y="Jumlah", color="Productivity Range",
+
+&#x20;                    color\_discrete\_map=RANGE\_COLOR, barmode="stack", text="Jumlah")
+
+&#x20;       fig.update\_traces(textposition="inside")
+
+&#x20;       fig.update\_layout(height=360, legend\_title="Range", margin=dict(t=20))
+
+&#x20;       st.plotly\_chart(fig, use\_container\_width=True)
+
+
+
+&#x20;   with c2:
+
+&#x20;       st.subheader("Tren Rata-rata Score per Periode")
+
+&#x20;       trend = (df.groupby(\["Period","Role"])\["Score"].mean().reset\_index().sort\_values("Period"))
+
+&#x20;       fig2 = px.line(trend, x="Period", y="Score", color="Role",
+
+&#x20;                      markers=True, category\_orders={"Period": PERIOD\_ORDER})
+
+&#x20;       fig2.update\_layout(height=360, margin=dict(t=20))
+
+&#x20;       st.plotly\_chart(fig2, use\_container\_width=True)
+
+
+
+&#x20;   c3, c4 = st.columns(2)
+
+&#x20;   with c3:
+
+&#x20;       st.subheader("🏆 Top 20 Individu — Score Tertinggi")
+
+&#x20;       top = (df.groupby(\["Uniq-ID","Name Clean","Role","Account"])\["Score"]
+
+&#x20;                .max().reset\_index().sort\_values("Score", ascending=False).head(20))
+
+&#x20;       fig3 = px.bar(top, x="Score", y="Name Clean", orientation="h",
+
+&#x20;                     color="Role", text=top\["Score"].round(2), hover\_data=\["Account","Role"])
+
+&#x20;       fig3.update\_traces(texttemplate="%{text}", textposition="outside")
+
+&#x20;       fig3.update\_layout(height=500, yaxis={"categoryorder":"total ascending"}, margin=dict(t=20))
+
+&#x20;       st.plotly\_chart(fig3, use\_container\_width=True)
+
+
+
+&#x20;   with c4:
+
+&#x20;       st.subheader("🏢 Rata-rata Score per Account")
+
+&#x20;       acct = (df.groupby("Account")\["Score"].mean().reset\_index().sort\_values("Score", ascending=False))
+
+&#x20;       fig4 = px.bar(acct, x="Account", y="Score", color="Score",
+
+&#x20;                     color\_continuous\_scale="RdYlGn", text=acct\["Score"].round(2))
+
+&#x20;       fig4.update\_traces(textposition="outside")
+
+&#x20;       fig4.update\_layout(height=500, margin=dict(t=20))
+
+&#x20;       st.plotly\_chart(fig4, use\_container\_width=True)
+
+
+
+&#x20;   c5, c6 = st.columns(2)
+
+&#x20;   with c5:
+
+&#x20;       st.subheader("⏱️ Status Periode")
+
+&#x20;       stat = (df.drop\_duplicates(subset=\["Uniq-ID","Period"])
+
+&#x20;                 .groupby("Period Status").size().reset\_index(name="Jumlah"))
+
+&#x20;       fig5 = px.pie(stat, names="Period Status", values="Jumlah", color="Period Status",
+
+&#x20;                     color\_discrete\_map={"Ended":"#27ae60","Ongoing":"#f39c12",
+
+&#x20;                                         "Not Start":"#95a5a6","Unknown":"#bdc3c7"})
+
+&#x20;       fig5.update\_layout(height=360, margin=dict(t=20))
+
+&#x20;       st.plotly\_chart(fig5, use\_container\_width=True)
+
+
+
+&#x20;   with c6:
+
+&#x20;       st.subheader("🗺️ Sebaran per Region")
+
+&#x20;       if df\["Region"].nunique() > 1:
+
+&#x20;           reg = (df.drop\_duplicates(subset=\["Uniq-ID","Period"])
+
+&#x20;                    .groupby(\["Region","Productivity Range"]).size().reset\_index(name="Jumlah"))
+
+&#x20;           fig6 = px.bar(reg, x="Region", y="Jumlah", color="Productivity Range",
+
+&#x20;                         color\_discrete\_map=RANGE\_COLOR, barmode="stack", text="Jumlah")
+
+&#x20;           fig6.update\_traces(textposition="inside")
+
+&#x20;           fig6.update\_layout(height=360, margin=dict(t=20))
+
+&#x20;           st.plotly\_chart(fig6, use\_container\_width=True)
+
+&#x20;       else:
+
+&#x20;           st.info("Data Region hanya tersedia untuk role QC, SE, dan PE.")
+
+
+
+\# ══════════════════════════════════════════════════════════════
+
+\#  TAB 2 — PERLU PERHATIAN
+
+\# ══════════════════════════════════════════════════════════════
+
 with tab2:
-    st.subheader("⚠️ Individu yang Perlu Perhatian")
-    st.caption("Berdasarkan periode aktif (Ended/Ongoing) dengan score rendah atau konsisten Poor.")
 
-    # Ambil periode aktif saja
-    df_active = df[df["Period Status"].isin(["Ended","Ongoing"])].copy()
+&#x20;   st.subheader("⚠️ Individu yang Perlu Perhatian")
 
-    # Score rendah: semua periode = Poor atau score 0 terus
-    summary = df_active.groupby(["Uniq-ID","Name Clean","Role","Account"]).agg(
-        Avg_Score=("Score", "mean"),
-        Max_Score=("Score", "max"),
-        All_Poor=("Productivity Range", lambda x: (x.isin(["Poor","Unknown"])).all()),
-        Latest_Coef=("Payment Coef.", "last"),
-        Periods=("Period", "nunique"),
-    ).reset_index()
+&#x20;   st.caption("Berdasarkan periode aktif (Ended/Ongoing) dengan score rendah atau konsisten Poor.")
 
-    at_risk = summary[
-        (summary["All_Poor"] == True) |
-        (summary["Max_Score"] == 0) |
-        (summary["Avg_Score"] < 0.5)
-    ].sort_values("Avg_Score")
 
-    consistent_poor = summary[
-        (summary["All_Poor"] == True) & (summary["Periods"] >= 2)
-    ]
 
-    zero_score = summary[summary["Max_Score"] == 0]
+&#x20;   # Ambil periode aktif saja
 
-    col_a, col_b, col_c = st.columns(3)
-    col_a.metric("🔴 Total At-Risk",        len(at_risk))
-    col_b.metric("📉 Konsisten Poor (≥2P)", len(consistent_poor))
-    col_c.metric("⭕ Score 0 Semua Periode", len(zero_score))
-    st.divider()
+&#x20;   df\_active = df\[df\["Period Status"].isin(\["Ended","Ongoing"])].copy()
 
-    if not at_risk.empty:
-        # Chart distribusi at-risk per Role
-        risk_role = at_risk.groupby("Role").size().reset_index(name="Jumlah")
-        fig_risk = px.bar(risk_role, x="Role", y="Jumlah", color="Role",
-                          title="At-Risk per Role", text="Jumlah", height=280)
-        fig_risk.update_traces(textposition="outside")
-        fig_risk.update_layout(showlegend=False, margin=dict(t=40,b=20))
-        fig_risk.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig_risk, use_container_width=True)
 
-        st.subheader("📋 Daftar Individu At-Risk")
-        tbl_risk = at_risk[["Name Clean","Role","Account","Avg_Score","Max_Score","Latest_Coef","Periods"]].copy()
-        tbl_risk.columns = ["Nama","Role","Account","Avg Score","Max Score","Koef Terakhir","Jumlah Periode"]
-        tbl_risk = tbl_risk.reset_index(drop=True)
 
-        def highlight_avg_score(val):
-            try:
-                v = float(val)
-                if v >= 3:   return "background-color:#d5f5e3; color:#1e8449; font-weight:600"
-                elif v >= 1: return "background-color:#fdebd0; color:#784212"
-                else:        return "background-color:#fadbd8; color:#922b21"
-            except:
-                return ""
+&#x20;   # Score rendah: semua periode = Poor atau score 0 terus
 
-        st.dataframe(
-            tbl_risk.style
-                .map(highlight_avg_score, subset=["Avg Score"])
-                .format({"Avg Score":"{:.2f}", "Max Score":"{:.2f}",
-                         "Koef Terakhir": lambda x: f"{x:.1f}" if pd.notna(x) else "–"}),
-            use_container_width=True, height=400
-        )
+&#x20;   summary = df\_active.groupby(\["Uniq-ID","Name Clean","Role","Account"]).agg(
 
-        csv_risk = tbl_risk.to_csv(index=False).encode("utf-8")
-        st.download_button("⬇️ Download Daftar At-Risk (CSV)", data=csv_risk,
-                           file_name="at_risk.csv", mime="text/csv")
-    else:
-        st.success("✅ Tidak ada individu at-risk dengan filter saat ini!")
+&#x20;       Avg\_Score=("Score", "mean"),
 
-# ══════════════════════════════════════════════════════════════
-#  TAB 3 — PERBANDINGAN PERIODE
-# ══════════════════════════════════════════════════════════════
+&#x20;       Max\_Score=("Score", "max"),
+
+&#x20;       All\_Poor=("Productivity Range", lambda x: (x.isin(\["Poor","Unknown"])).all()),
+
+&#x20;       Latest\_Coef=("Payment Coef.", "last"),
+
+&#x20;       Periods=("Period", "nunique"),
+
+&#x20;   ).reset\_index()
+
+
+
+&#x20;   at\_risk = summary\[
+
+&#x20;       (summary\["All\_Poor"] == True) |
+
+&#x20;       (summary\["Max\_Score"] == 0) |
+
+&#x20;       (summary\["Avg\_Score"] < 0.5)
+
+&#x20;   ].sort\_values("Avg\_Score")
+
+
+
+&#x20;   consistent\_poor = summary\[
+
+&#x20;       (summary\["All\_Poor"] == True) \& (summary\["Periods"] >= 2)
+
+&#x20;   ]
+
+
+
+&#x20;   zero\_score = summary\[summary\["Max\_Score"] == 0]
+
+
+
+&#x20;   col\_a, col\_b, col\_c = st.columns(3)
+
+&#x20;   col\_a.metric("🔴 Total At-Risk",        len(at\_risk))
+
+&#x20;   col\_b.metric("📉 Konsisten Poor (≥2P)", len(consistent\_poor))
+
+&#x20;   col\_c.metric("⭕ Score 0 Semua Periode", len(zero\_score))
+
+&#x20;   st.divider()
+
+
+
+&#x20;   if not at\_risk.empty:
+
+&#x20;       # Chart distribusi at-risk per Role
+
+&#x20;       risk\_role = at\_risk.groupby("Role").size().reset\_index(name="Jumlah")
+
+&#x20;       fig\_risk = px.bar(risk\_role, x="Role", y="Jumlah", color="Role",
+
+&#x20;                         title="At-Risk per Role", text="Jumlah", height=280)
+
+&#x20;       fig\_risk.update\_traces(textposition="outside")
+
+&#x20;       fig\_risk.update\_layout(showlegend=False, margin=dict(t=40,b=20))
+
+&#x20;       st.plotly\_chart(fig\_risk, use\_container\_width=True)
+
+
+
+&#x20;       st.subheader("📋 Daftar Individu At-Risk")
+
+&#x20;       tbl\_risk = at\_risk\[\["Name Clean","Role","Account","Avg\_Score","Max\_Score","Latest\_Coef","Periods"]].copy()
+
+&#x20;       tbl\_risk.columns = \["Nama","Role","Account","Avg Score","Max Score","Koef Terakhir","Jumlah Periode"]
+
+&#x20;       tbl\_risk = tbl\_risk.reset\_index(drop=True)
+
+
+
+&#x20;       def highlight\_avg\_score(val):
+
+&#x20;           try:
+
+&#x20;               v = float(val)
+
+&#x20;               if v >= 3:   return "background-color:#d5f5e3; color:#1e8449; font-weight:600"
+
+&#x20;               elif v >= 1: return "background-color:#fdebd0; color:#784212"
+
+&#x20;               else:        return "background-color:#fadbd8; color:#922b21"
+
+&#x20;           except:
+
+&#x20;               return ""
+
+
+
+&#x20;       st.dataframe(
+
+&#x20;           tbl\_risk.style
+
+&#x20;               .map(highlight\_avg\_score, subset=\["Avg Score"])
+
+&#x20;               .format({"Avg Score":"{:.2f}", "Max Score":"{:.2f}",
+
+&#x20;                        "Koef Terakhir": lambda x: f"{x:.1f}" if pd.notna(x) else "–"}),
+
+&#x20;           use\_container\_width=True, height=400
+
+&#x20;       )
+
+
+
+&#x20;       csv\_risk = tbl\_risk.to\_csv(index=False).encode("utf-8")
+
+&#x20;       st.download\_button("⬇️ Download Daftar At-Risk (CSV)", data=csv\_risk,
+
+&#x20;                          file\_name="at\_risk.csv", mime="text/csv")
+
+&#x20;   else:
+
+&#x20;       st.success("✅ Tidak ada individu at-risk dengan filter saat ini!")
+
+
+
+\# ══════════════════════════════════════════════════════════════
+
+\#  TAB 3 — PERBANDINGAN PERIODE
+
+\# ══════════════════════════════════════════════════════════════
+
 with tab3:
-    st.subheader("📅 Perbandingan Antar Periode")
 
-    periods_available = sorted(df["Period"].dropna().unique())
-    if len(periods_available) < 2:
-        st.info("Butuh minimal 2 periode untuk perbandingan.")
-    else:
-        col_p1, col_p2 = st.columns(2)
-        p1 = col_p1.selectbox("Periode A", options=periods_available, index=0)
-        p2 = col_p2.selectbox("Periode B", options=periods_available,
-                               index=min(1, len(periods_available)-1))
+&#x20;   st.subheader("📅 Perbandingan Antar Periode")
 
-        df_p1 = df[df["Period"] == p1].groupby("Uniq-ID").agg(
-            Score_A=("Score","max"), Range_A=("Productivity Range", lambda x: x.mode()[0] if not x.mode().empty else "Unknown"),
-            Name=("Name Clean","first"), Role=("Role","first"), Account=("Account","first")
-        ).reset_index()
 
-        df_p2 = df[df["Period"] == p2].groupby("Uniq-ID").agg(
-            Score_B=("Score","max"), Range_B=("Productivity Range", lambda x: x.mode()[0] if not x.mode().empty else "Unknown")
-        ).reset_index()
 
-        comp = df_p1.merge(df_p2, on="Uniq-ID", how="outer")
-        comp["Score_A"] = comp["Score_A"].fillna(0)
-        comp["Score_B"] = comp["Score_B"].fillna(0)
-        comp["Delta"]   = comp["Score_B"] - comp["Score_A"]
-        comp["Trend"]   = comp["Delta"].apply(lambda x: "📈 Naik" if x > 0 else ("📉 Turun" if x < 0 else "➡️ Sama"))
+&#x20;   periods\_available = sorted(df\["Period"].dropna().unique())
 
-        st.divider()
-        col_m1, col_m2, col_m3 = st.columns(3)
-        naik  = (comp["Delta"] > 0).sum()
-        turun = (comp["Delta"] < 0).sum()
-        sama  = (comp["Delta"] == 0).sum()
-        col_m1.metric("📈 Naik",  naik)
-        col_m2.metric("📉 Turun", turun)
-        col_m3.metric("➡️ Sama",  sama)
+&#x20;   if len(periods\_available) < 2:
 
-        # Scatter plot perbandingan
-        fig_comp = px.scatter(
-            comp.dropna(subset=["Name"]), x="Score_A", y="Score_B",
-            color="Trend", hover_name="Name",
-            hover_data=["Role","Account","Delta"],
-            labels={"Score_A": f"Score {p1}", "Score_B": f"Score {p2}"},
-            title=f"Perbandingan Score: {p1} vs {p2}",
-            color_discrete_map={"📈 Naik":"#27ae60","📉 Turun":"#e74c3c","➡️ Sama":"#95a5a6"},
-            height=420
-        )
-        # Garis diagonal (sama persis)
-        max_val = max(comp["Score_A"].max(), comp["Score_B"].max()) * 1.05
-        fig_comp.add_shape(type="line", x0=0, y0=0, x1=max_val, y1=max_val,
-                           line=dict(dash="dot", color="gray", width=1))
-        fig_comp.update_layout(margin=dict(t=40))
-        fig_comp.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig_comp, use_container_width=True)
+&#x20;       st.info("Butuh minimal 2 periode untuk perbandingan.")
 
-        # Top mover
-        c_up, c_down = st.columns(2)
-        with c_up:
-            st.markdown("**🚀 Top 10 Paling Naik**")
-            top_up = comp.nlargest(10, "Delta")[["Name","Role","Score_A","Score_B","Delta"]].reset_index(drop=True)
-            top_up.columns = ["Nama","Role",f"Score {p1}",f"Score {p2}","Delta"]
-            st.dataframe(top_up.style.format({f"Score {p1}":"{:.2f}",f"Score {p2}":"{:.2f}","Delta":"{:+.2f}"}),
-                         use_container_width=True, height=300)
-        with c_down:
-            st.markdown("**📉 Top 10 Paling Turun**")
-            top_down = comp.nsmallest(10, "Delta")[["Name","Role","Score_A","Score_B","Delta"]].reset_index(drop=True)
-            top_down.columns = ["Nama","Role",f"Score {p1}",f"Score {p2}","Delta"]
-            st.dataframe(top_down.style.format({f"Score {p1}":"{:.2f}",f"Score {p2}":"{:.2f}","Delta":"{:+.2f}"}),
-                         use_container_width=True, height=300)
+&#x20;   else:
 
-# ══════════════════════════════════════════════════════════════
-#  TAB 4 — DETAIL INDIVIDU
-# ══════════════════════════════════════════════════════════════
+&#x20;       col\_p1, col\_p2 = st.columns(2)
+
+&#x20;       p1 = col\_p1.selectbox("Periode A", options=periods\_available, index=0)
+
+&#x20;       p2 = col\_p2.selectbox("Periode B", options=periods\_available,
+
+&#x20;                              index=min(1, len(periods\_available)-1))
+
+
+
+&#x20;       df\_p1 = df\[df\["Period"] == p1].groupby("Uniq-ID").agg(
+
+&#x20;           Score\_A=("Score","max"), Range\_A=("Productivity Range", lambda x: x.mode()\[0] if not x.mode().empty else "Unknown"),
+
+&#x20;           Name=("Name Clean","first"), Role=("Role","first"), Account=("Account","first")
+
+&#x20;       ).reset\_index()
+
+
+
+&#x20;       df\_p2 = df\[df\["Period"] == p2].groupby("Uniq-ID").agg(
+
+&#x20;           Score\_B=("Score","max"), Range\_B=("Productivity Range", lambda x: x.mode()\[0] if not x.mode().empty else "Unknown")
+
+&#x20;       ).reset\_index()
+
+
+
+&#x20;       comp = df\_p1.merge(df\_p2, on="Uniq-ID", how="outer")
+
+&#x20;       comp\["Score\_A"] = comp\["Score\_A"].fillna(0)
+
+&#x20;       comp\["Score\_B"] = comp\["Score\_B"].fillna(0)
+
+&#x20;       comp\["Delta"]   = comp\["Score\_B"] - comp\["Score\_A"]
+
+&#x20;       comp\["Trend"]   = comp\["Delta"].apply(lambda x: "📈 Naik" if x > 0 else ("📉 Turun" if x < 0 else "➡️ Sama"))
+
+
+
+&#x20;       st.divider()
+
+&#x20;       col\_m1, col\_m2, col\_m3 = st.columns(3)
+
+&#x20;       naik  = (comp\["Delta"] > 0).sum()
+
+&#x20;       turun = (comp\["Delta"] < 0).sum()
+
+&#x20;       sama  = (comp\["Delta"] == 0).sum()
+
+&#x20;       col\_m1.metric("📈 Naik",  naik)
+
+&#x20;       col\_m2.metric("📉 Turun", turun)
+
+&#x20;       col\_m3.metric("➡️ Sama",  sama)
+
+
+
+&#x20;       # Scatter plot perbandingan
+
+&#x20;       fig\_comp = px.scatter(
+
+&#x20;           comp.dropna(subset=\["Name"]), x="Score\_A", y="Score\_B",
+
+&#x20;           color="Trend", hover\_name="Name",
+
+&#x20;           hover\_data=\["Role","Account","Delta"],
+
+&#x20;           labels={"Score\_A": f"Score {p1}", "Score\_B": f"Score {p2}"},
+
+&#x20;           title=f"Perbandingan Score: {p1} vs {p2}",
+
+&#x20;           color\_discrete\_map={"📈 Naik":"#27ae60","📉 Turun":"#e74c3c","➡️ Sama":"#95a5a6"},
+
+&#x20;           height=420
+
+&#x20;       )
+
+&#x20;       # Garis diagonal (sama persis)
+
+&#x20;       max\_val = max(comp\["Score\_A"].max(), comp\["Score\_B"].max()) \* 1.05
+
+&#x20;       fig\_comp.add\_shape(type="line", x0=0, y0=0, x1=max\_val, y1=max\_val,
+
+&#x20;                          line=dict(dash="dot", color="gray", width=1))
+
+&#x20;       fig\_comp.update\_layout(margin=dict(t=40))
+
+&#x20;       st.plotly\_chart(fig\_comp, use\_container\_width=True)
+
+
+
+&#x20;       # Top mover
+
+&#x20;       c\_up, c\_down = st.columns(2)
+
+&#x20;       with c\_up:
+
+&#x20;           st.markdown("\*\*🚀 Top 10 Paling Naik\*\*")
+
+&#x20;           top\_up = comp.nlargest(10, "Delta")\[\["Name","Role","Score\_A","Score\_B","Delta"]].reset\_index(drop=True)
+
+&#x20;           top\_up.columns = \["Nama","Role",f"Score {p1}",f"Score {p2}","Delta"]
+
+&#x20;           st.dataframe(top\_up.style.format({f"Score {p1}":"{:.2f}",f"Score {p2}":"{:.2f}","Delta":"{:+.2f}"}),
+
+&#x20;                        use\_container\_width=True, height=300)
+
+&#x20;       with c\_down:
+
+&#x20;           st.markdown("\*\*📉 Top 10 Paling Turun\*\*")
+
+&#x20;           top\_down = comp.nsmallest(10, "Delta")\[\["Name","Role","Score\_A","Score\_B","Delta"]].reset\_index(drop=True)
+
+&#x20;           top\_down.columns = \["Nama","Role",f"Score {p1}",f"Score {p2}","Delta"]
+
+&#x20;           st.dataframe(top\_down.style.format({f"Score {p1}":"{:.2f}",f"Score {p2}":"{:.2f}","Delta":"{:+.2f}"}),
+
+&#x20;                        use\_container\_width=True, height=300)
+
+
+
+\# ══════════════════════════════════════════════════════════════
+
+\#  TAB 4 — DETAIL INDIVIDU
+
+\# ══════════════════════════════════════════════════════════════
+
 with tab4:
-    st.subheader("👤 Detail per Individu")
 
-    names_avail = sorted(df["Name Clean"].dropna().unique())
-    sel_name = st.selectbox("Pilih individu:", options=names_avail)
-    df_ind = df[df["Name Clean"] == sel_name].copy()
-
-    if df_ind.empty:
-        st.warning("Data tidak ditemukan.")
-    else:
-        info = df_ind.iloc[0]
-
-        period_data = (df_ind.groupby("Period").agg(
-            Score=("Score","max"),
-            Status=("Period Status","first"),
-            Range=("Productivity Range", lambda x: x.mode()[0] if not x.mode().empty else "Unknown"),
-            Coef=("Payment Coef.","first"),
-        ).reset_index().sort_values("Period"))
-
-        avg_score     = period_data["Score"].mean()
-        max_score     = period_data["Score"].max()
-        best_period   = period_data.loc[period_data["Score"].idxmax(), "Period"]
-        last_coef     = period_data["Coef"].dropna().iloc[-1] if period_data["Coef"].notna().any() else None
-        n_periods     = len(period_data)
-        overall_range = period_data["Range"].mode()[0] if not period_data["Range"].mode().empty else "Unknown"
-        role          = info.get("Role","")
-
-        # Tren
-        if len(period_data) >= 2:
-            delta_val  = period_data["Score"].iloc[-1] - period_data["Score"].iloc[-2]
-            tren_label = f"{'↑' if delta_val>0 else '↓'} {abs(delta_val):.1f}"
-            tren_color = "#27ae60" if delta_val > 0 else "#e74c3c"
-            tren_sub   = "vs periode lalu"
-        else:
-            tren_label, tren_color, tren_sub = "–", "var(--text-muted)", "baru 1 periode"
-
-        # Koefisien narasi
-        coef_vals = period_data["Coef"].dropna()
-        if len(coef_vals) >= 2:
-            cd = coef_vals.iloc[-1] - coef_vals.iloc[-2]
-            coef_note = f"Koefisien {'naik' if cd>0 else 'turun' if cd<0 else 'stabil'} ke {coef_vals.iloc[-1]:.1f} di periode terakhir."
-        elif len(coef_vals)==1:
-            coef_note = f"Koefisien tercatat {coef_vals.iloc[0]:.1f}."
-        else:
-            coef_note = "Data koefisien belum tersedia."
-
-        if len(period_data) >= 2:
-            dv = period_data["Score"].iloc[-1] - period_data["Score"].iloc[-2]
-            tren_text = f"naik {dv:.1f} poin" if dv>0.5 else (f"turun {abs(dv):.1f} poin" if dv<-0.5 else "stabil")
-        else:
-            tren_text = "baru 1 periode aktif"
-
-        badge_colors = {"Excellent":("#d5f5e3","#1e8449"),"Normal":("#fdebd0","#784212"),
-                        "Poor":("#fadbd8","#922b21"),"Achieved":("#d5f5e3","#1e8449"),"Unknown":("#f0f0f0","#555")}
-        badge_bg, badge_fg = badge_colors.get(overall_range, ("#f0f0f0","#555"))
-        header_color = {"Excellent":"#27ae60","Normal":"#f39c12","Poor":"#e74c3c","Achieved":"#27ae60"}.get(overall_range,"#95a5a6")
-        narasi_icon  = {"Excellent":"✅","Poor":"⚠️"}.get(overall_range,"📊")
-
-        if overall_range == "Excellent":
-            narasi = f"Performa terbaik di {best_period} (score {max_score:.1f}). {coef_note} Score {tren_text} dari periode sebelumnya."
-        elif overall_range == "Poor":
-            narasi = f"Perlu perhatian — score tertinggi hanya {max_score:.1f} di {best_period}. {coef_note} Score {tren_text}."
-        else:
-            narasi = f"Score terbaik {max_score:.1f} di {best_period}. {coef_note} Score {tren_text} dari periode sebelumnya."
-
-        parts    = sel_name.split()
-        initials = (parts[0][0] + (parts[-1][0] if len(parts)>1 else "")).upper()
-        coef_display = f"{last_coef:.1f}" if last_coef is not None else "–"
-        coef_color   = "#1e8449" if last_coef and last_coef>=1.5 else ("#784212" if last_coef and last_coef>=1.0 else "#922b21")
-
-        # ── Role detail cols ──
-        ROLE_DETAIL_COLS = {
-            "DC": ["Document Category","Document Type","Source Data","Baseline/Cycle","Total Doc.","% Achievement"],
-            "QC": ["QEHS Inspection (ONSITE)","Compliance Check (TL)","Training (Class)","Baseline","Achievement"],
-            "SE": ["Onsite Clock-In","M-06 Integrated"],
-            "PE": ["M-04 MOS   (20%)","M-05 Installation   (30%)","On Air   (20%)","ATP Submit   (20%)","ATP Approve   (20%)","Total Score"],
-        }
-        SHORT = {
-            "Document Category":"Doc Cat","Document Type":"Doc Type","Source Data":"Source",
-            "Baseline/Cycle":"Baseline","Total Doc.":"Total Doc","% Achievement":"% Ach",
-            "QEHS Inspection (ONSITE)":"QEHS","Compliance Check (TL)":"Compliance",
-            "Training (Class)":"Training","Baseline":"Baseline","Achievement":"Achievement",
-            "Onsite Clock-In":"Clock-In","M-06 Integrated":"M-06",
-            "M-04 MOS   (20%)":"MOS","M-05 Installation   (30%)":"Install",
-            "On Air   (20%)":"On Air","ATP Submit   (20%)":"ATP Sub",
-            "ATP Approve   (20%)":"ATP App","Total Score":"Total",
-        }
-        detail_cols = [c for c in ROLE_DETAIL_COLS.get(role,[]) if c in df_ind.columns]
-
-        # ── Build bar chart HTML ──
-        max_s = period_data["Score"].max() if period_data["Score"].max()>0 else 1
-        bars = ""
-        for _, row in period_data.iterrows():
-            pct  = max(int((row["Score"]/max_s)*52), 2) if max_s>0 else 2
-            bc   = RANGE_COLOR.get(row["Range"],"#95a5a6")
-            lbl  = f"{row['Score']:.1f}" if row["Score"]>0 else "–"
-            bars += (f'<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">'
-                     f'<span style="font-size:12px;font-weight:500;color:{bc};">{lbl}</span>'
-                     f'<div style="width:100%;background:{bc};border-radius:4px 4px 0 0;height:{pct}px;"></div>'
-                     f'<span style="font-size:11px;color:var(--text-muted);">{row["Period"]}</span>'
-                     f'</div>')
-
-        # ── Build table header extra cols ──
-        th_extra = "".join(
-            f'<th style="text-align:right;padding:6px 8px;color:var(--text-muted);font-weight:500;">{SHORT.get(c,c)}</th>'
-            for c in detail_cols
-        )
-
-        # ── Build table rows ──
-        rc = {"Excellent":("#d5f5e3","#1e8449"),"Normal":("#fdebd0","#784212"),
-              "Poor":("#fadbd8","#922b21"),"Achieved":("#d5f5e3","#1e8449")}
-        rows_html = ""
-        for _, row in period_data.iterrows():
-            rb, rf = rc.get(row["Range"],("#f0f0f0","#555"))
-            cv  = f"{row['Coef']:.1f}" if pd.notna(row.get("Coef")) else "–"
-            cc  = ("#1e8449" if pd.notna(row.get("Coef")) and row.get("Coef",0)>=1.5
-                   else "#784212" if pd.notna(row.get("Coef")) and row.get("Coef",0)>=1.0
-                   else "#922b21")
-            orig = df_ind[df_ind["Period"]==row["Period"]]
-            is_not_start = str(row["Status"]).strip() == "Not Start"
-            row_bg = "background:var(--surface-1);" if is_not_start else ""
-            td_extra = ""
-            for c in detail_cols:
-                val = orig.iloc[0][c] if not orig.empty and c in orig.columns else "–"
-                if pd.isna(val): val="–"
-                elif isinstance(val,float): val=f"{val:.0f}"
-                cell_color = "color:#aaa;font-style:italic;" if is_not_start else "color:var(--text-primary);"
-                td_extra += f'<td style="padding:7px 8px;text-align:right;{cell_color}">{val}</td>'
-            status_badge = (
-                '<span style="background:#f0f0f0;color:#aaa;border-radius:10px;padding:2px 8px;font-size:11px;">Belum mulai</span>'
-                if is_not_start else row["Status"]
-            )
-            score_disp = "–" if is_not_start else f'{row["Score"]:.1f}'
-            coef_disp2 = "–" if is_not_start else cv
-            coef_col2  = "color:#aaa;" if is_not_start else f"color:{cc};"
-            rows_html += (
-                f'<tr style="border-bottom:0.5px solid var(--border);{row_bg}">'
-                f'<td style="padding:7px 8px;font-weight:500;color:var(--text-primary);">{row["Period"]}</td>'
-                f'<td style="padding:7px 8px;color:var(--text-muted);">{status_badge}</td>'
-                f'<td style="padding:7px 8px;"><span style="background:{rb};color:{rf};border-radius:10px;padding:2px 8px;font-size:11px;font-weight:500;">{row["Range"]}</span></td>'
-                f'<td style="padding:7px 8px;text-align:right;font-weight:500;color:var(--text-primary);">{score_disp}</td>'
-                f'<td style="padding:7px 8px;text-align:right;font-weight:500;{coef_col2}">{coef_disp2}</td>'
-                f'{td_extra}'
-                f'</tr>'
-            )
-
-        period_label = " &middot; ".join(sorted(period_data["Period"].tolist()))
-
-        # ── Render Card ──
-        card = (
-            f'<div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">'
-
-            # Header bar
-            f'<div style="background:{header_color};padding:10px 20px;display:flex;align-items:center;justify-content:space-between;">'
-            f'<span style="color:white;font-size:12px;font-weight:500;letter-spacing:0.05em;">LAPORAN PRODUKTIVITAS INDIVIDU</span>'
-            f'<span style="color:rgba(255,255,255,0.85);font-size:12px;">Periode: {period_label}</span>'
-            f'</div>'
-
-            # Identitas
-            f'<div style="padding:16px 20px;display:flex;align-items:center;gap:16px;border-bottom:0.5px solid var(--border);">'
-            f'<div style="width:56px;height:56px;border-radius:50%;background:{badge_bg};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:{badge_fg};flex-shrink:0;">{initials}</div>'
-            f'<div style="flex:1;">'
-            f'<p style="font-size:18px;font-weight:500;margin:0;color:var(--text-primary);">{sel_name}</p>'
-            f'<p style="font-size:13px;color:var(--text-muted);margin:3px 0 0;">{role} &middot; {info.get("Account","–")} &middot; {info.get("Region","–")}</p>'
-            f'</div>'
-            f'<div style="text-align:right;">'
-            f'<div style="background:{badge_bg};border-radius:20px;padding:5px 16px;font-size:13px;font-weight:500;color:{badge_fg};margin-bottom:4px;">{narasi_icon} {overall_range}</div>'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0;">Status keseluruhan</p>'
-            f'</div></div>'
-
-            # 4 KPI
-            f'<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:0.5px solid var(--border);">'
-            f'<div style="padding:14px 16px;border-right:0.5px solid var(--border);">'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Avg Score</p>'
-            f'<p style="font-size:26px;font-weight:500;margin:0;color:var(--text-primary);">{avg_score:.1f}</p>'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">dari {n_periods} periode</p></div>'
-
-            f'<div style="padding:14px 16px;border-right:0.5px solid var(--border);">'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Score Terbaik</p>'
-            f'<p style="font-size:26px;font-weight:500;margin:0;color:var(--text-primary);">{max_score:.1f}</p>'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">di {best_period}</p></div>'
-
-            f'<div style="padding:14px 16px;border-right:0.5px solid var(--border);">'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Koefisien</p>'
-            f'<p style="font-size:26px;font-weight:500;margin:0;color:{coef_color};">{coef_display}</p>'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">terakhir tercatat</p></div>'
-
-            f'<div style="padding:14px 16px;">'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em;">Tren Score</p>'
-            f'<p style="font-size:26px;font-weight:500;margin:0;color:{tren_color};">{tren_label}</p>'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">{tren_sub}</p></div>'
-            f'</div>'
-
-            # Mini bar chart
-            f'<div style="padding:14px 20px;border-bottom:0.5px solid var(--border);">'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.05em;">Tren Score per Periode</p>'
-            f'<div style="display:flex;align-items:flex-end;gap:10px;height:72px;">{bars}</div>'
-            f'</div>'
-
-            # Tabel detail
-            f'<div style="padding:14px 20px;border-bottom:0.5px solid var(--border);overflow-x:auto;">'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.05em;">Detail per Periode</p>'
-            f'<table style="width:100%;font-size:13px;border-collapse:collapse;">'
-            f'<thead><tr style="border-bottom:0.5px solid var(--border);">'
-            f'<th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:500;">Periode</th>'
-            f'<th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:500;">Status</th>'
-            f'<th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:500;">Range</th>'
-            f'<th style="text-align:right;padding:6px 8px;color:var(--text-muted);font-weight:500;">Score</th>'
-            f'<th style="text-align:right;padding:6px 8px;color:var(--text-muted);font-weight:500;">Koef</th>'
-            f'{th_extra}'
-            f'</tr></thead>'
-            f'<tbody>{rows_html}</tbody>'
-            f'</table></div>'
-
-            # Insight
-            f'<div style="padding:14px 20px;">'
-            f'<p style="font-size:11px;color:var(--text-muted);margin:0 0 8px;text-transform:uppercase;letter-spacing:0.05em;">Insight Otomatis</p>'
-            f'<div style="background:var(--surface-1);border-radius:8px;padding:10px 14px;border-left:3px solid {header_color};">'
-            f'<p style="font-size:13px;color:var(--text-primary);margin:0;line-height:1.7;">{narasi_icon} {narasi}</p>'
-            f'</div></div>'
-
-            f'</div>'
-        )
-        st.markdown(card, unsafe_allow_html=True)
+&#x20;   st.subheader("👤 Detail per Individu")
 
 
 
+&#x20;   names\_avail = sorted(df\["Name Clean"].dropna().unique())
 
-# ══════════════════════════════════════════════════════════════
-#  TAB 5 — KOEFISIEN PEMBAYARAN
-# ══════════════════════════════════════════════════════════════
+&#x20;   sel\_name = st.selectbox("Pilih individu:", options=names\_avail)
+
+
+
+&#x20;   df\_ind = df\[df\["Name Clean"] == sel\_name].copy()
+
+
+
+&#x20;   if df\_ind.empty:
+
+&#x20;       st.warning("Data tidak ditemukan.")
+
+&#x20;   else:
+
+&#x20;       info = df\_ind.iloc\[0]
+
+&#x20;       i1, i2, i3, i4 = st.columns(4)
+
+&#x20;       i1.metric("🆔 ID",      info.get("Uniq-ID","–"))
+
+&#x20;       i2.metric("🏢 Account", info.get("Account","–"))
+
+&#x20;       i3.metric("👔 Role",    info.get("Role","–"))
+
+&#x20;       i4.metric("🗺️ Region",  info.get("Region","–"))
+
+&#x20;       st.divider()
+
+
+
+&#x20;       # Score per periode
+
+&#x20;       period\_data = (df\_ind.groupby("Period").agg(
+
+&#x20;           Score=("Score","max"),
+
+&#x20;           Status=("Period Status","first"),
+
+&#x20;           Range=("Productivity Range", lambda x: x.mode()\[0] if not x.mode().empty else "Unknown"),
+
+&#x20;           Coef=("Payment Coef.","first"),
+
+&#x20;       ).reset\_index().sort\_values("Period"))
+
+
+
+&#x20;       col\_chart, col\_tbl = st.columns(\[3,2])
+
+&#x20;       with col\_chart:
+
+&#x20;           fig\_ind = go.Figure()
+
+&#x20;           fig\_ind.add\_trace(go.Bar(
+
+&#x20;               x=period\_data\["Period"], y=period\_data\["Score"],
+
+&#x20;               marker\_color=\[RANGE\_COLOR.get(r,"#95a5a6") for r in period\_data\["Range"]],
+
+&#x20;               text=period\_data\["Score"].round(2), textposition="outside",
+
+&#x20;               name="Score"
+
+&#x20;           ))
+
+&#x20;           fig\_ind.update\_layout(title=f"Score per Periode — {sel\_name}",
+
+&#x20;                                  height=320, margin=dict(t=40,b=20),
+
+&#x20;                                  xaxis\_title="Periode", yaxis\_title="Score")
+
+&#x20;           st.plotly\_chart(fig\_ind, use\_container\_width=True)
+
+
+
+&#x20;       with col\_tbl:
+
+&#x20;           st.markdown("\*\*Ringkasan per Periode\*\*")
+
+&#x20;           disp = period\_data\[\["Period","Status","Range","Score","Coef"]].copy()
+
+&#x20;           disp.columns = \["Periode","Status","Range","Score","Koef"]
+
+&#x20;           st.dataframe(
+
+&#x20;               disp.style
+
+&#x20;                   .map(highlight\_range, subset=\["Range"])
+
+&#x20;                   .map(highlight\_coef, subset=\["Koef"])
+
+&#x20;                   .format({"Score":"{:.2f}", "Koef": lambda x: f"{x:.1f}" if pd.notna(x) else "–"}),
+
+&#x20;               use\_container\_width=True, height=260
+
+&#x20;           )
+
+
+
+&#x20;       # Tren koefisien
+
+&#x20;       if period\_data\["Coef"].notna().any():
+
+&#x20;           fig\_coef = px.line(period\_data, x="Period", y="Coef",
+
+&#x20;                              markers=True, title="Tren Koefisien Pembayaran",
+
+&#x20;                              color\_discrete\_sequence=\["#4f8bf9"], height=260)
+
+&#x20;           fig\_coef.add\_hline(y=1.0, line\_dash="dot", line\_color="orange", annotation\_text="Batas Normal")
+
+&#x20;           fig\_coef.add\_hline(y=1.5, line\_dash="dot", line\_color="green",  annotation\_text="Excellent")
+
+&#x20;           fig\_coef.update\_layout(margin=dict(t=40,b=20))
+
+&#x20;           st.plotly\_chart(fig\_coef, use\_container\_width=True)
+
+
+
+&#x20;       # Detail dokumen (kalau ada)
+
+&#x20;       doc\_cols = \[c for c in df\_ind.columns if c in
+
+&#x20;                   \["Document Category","Document Type","Total Doc.","% Achievement","Source Data","Baseline/Cycle"]]
+
+&#x20;       if doc\_cols:
+
+&#x20;           st.markdown("\*\*Detail Dokumen\*\*")
+
+&#x20;           doc\_tbl = df\_ind\[\["Period"] + doc\_cols].dropna(subset=doc\_cols\[:1]).reset\_index(drop=True)
+
+&#x20;           st.dataframe(doc\_tbl, use\_container\_width=True, height=200)
+
+
+
+\# ══════════════════════════════════════════════════════════════
+
+\#  TAB 5 — KOEFISIEN PEMBAYARAN
+
+\# ══════════════════════════════════════════════════════════════
+
 with tab5:
-    st.subheader("💰 Analisis Koefisien Pembayaran")
-    st.caption("Koefisien: 1.5 = Excellent · 1.0 = Normal · 0.9 = Poor · 0.5 = Very Poor")
 
-    df_coef = df[df["Payment Coef."].notna()].copy()
+&#x20;   st.subheader("💰 Analisis Koefisien Pembayaran")
 
-    if df_coef.empty:
-        st.info("Tidak ada data koefisien untuk filter ini.")
-    else:
-        # KPI
-        avg_coef  = df_coef.groupby("Uniq-ID")["Payment Coef."].last().mean()
-        cnt_15    = (df_coef.groupby("Uniq-ID")["Payment Coef."].last() >= 1.5).sum()
-        cnt_low   = (df_coef.groupby("Uniq-ID")["Payment Coef."].last() < 1.0).sum()
+&#x20;   st.caption("Koefisien: 1.5 = Excellent · 1.0 = Normal · 0.9 = Poor · 0.5 = Very Poor")
 
-        ck1, ck2, ck3 = st.columns(3)
-        ck1.metric("📊 Avg Koefisien",      f"{avg_coef:.2f}")
-        ck2.metric("🟢 Koef ≥ 1.5 (Excellent)", cnt_15)
-        ck3.metric("🔴 Koef < 1.0 (Poor)",  cnt_low)
-        st.divider()
 
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            # Distribusi koefisien
-            coef_dist = (df_coef.groupby(["Role","Payment Coef."])
-                           .size().reset_index(name="Jumlah"))
-            coef_dist["Koef"] = coef_dist["Payment Coef."].astype(str)
-            fig_c1 = px.bar(coef_dist, x="Koef", y="Jumlah", color="Role",
-                            barmode="group", title="Distribusi Koefisien per Role",
-                            text="Jumlah", height=340)
-            fig_c1.update_traces(textposition="outside")
-            fig_c1.update_layout(margin=dict(t=40))
-            fig_c1.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-            st.plotly_chart(fig_c1, use_container_width=True)
 
-        with cc2:
-            # Avg koefisien per account
-            coef_acct = (df_coef.groupby("Account")["Payment Coef."]
-                           .mean().reset_index()
-                           .sort_values("Payment Coef.", ascending=False))
-            fig_c2 = px.bar(coef_acct, x="Account", y="Payment Coef.",
-                            color="Payment Coef.", color_continuous_scale="RdYlGn",
-                            title="Rata-rata Koefisien per Account",
-                            text=coef_acct["Payment Coef."].round(2), height=340)
-            fig_c2.update_traces(textposition="outside")
-            fig_c2.update_layout(margin=dict(t=40))
-            fig_c2.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-            st.plotly_chart(fig_c2, use_container_width=True)
+&#x20;   df\_coef = df\[df\["Payment Coef."].notna()].copy()
 
-        # Tren koefisien per periode
-        coef_trend = (df_coef.groupby(["Period","Role"])["Payment Coef."]
-                        .mean().reset_index().sort_values("Period"))
-        fig_ct = px.line(coef_trend, x="Period", y="Payment Coef.", color="Role",
-                         markers=True, title="Tren Koefisien per Periode",
-                         category_orders={"Period": PERIOD_ORDER}, height=320)
-        fig_ct.add_hline(y=1.0, line_dash="dot", line_color="orange", annotation_text="Normal (1.0)")
-        fig_ct.add_hline(y=1.5, line_dash="dot", line_color="green",  annotation_text="Excellent (1.5)")
-        fig_ct.update_layout(margin=dict(t=40))
-        fig_ct.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
-        st.plotly_chart(fig_ct, use_container_width=True)
 
-        # Tabel lengkap koefisien
-        st.markdown("**📋 Tabel Koefisien per Individu**")
-        coef_tbl = (df_coef.groupby(["Uniq-ID","Name Clean","Role","Account","Period"])
-                      .agg(Score=("Score","max"), Coef=("Payment Coef.","first"),
-                           Range=("Productivity Range", lambda x: x.mode()[0] if not x.mode().empty else "Unknown"))
-                      .reset_index()
-                      .sort_values(["Role","Coef"], ascending=[True,False]))
 
-        st.dataframe(
-            coef_tbl.rename(columns={"Name Clean":"Nama","Payment Coef.":"Koef",
-                                      "Productivity Range":"Range"})
-                    .style
-                    .map(highlight_range, subset=["Range"])
-                    .map(highlight_coef,  subset=["Coef"])
-                    .format({"Score":"{:.2f}", "Coef": lambda x: f"{x:.1f}" if pd.notna(x) else "–"}),
-            use_container_width=True, height=400
-        )
+&#x20;   if df\_coef.empty:
 
-        csv_coef = coef_tbl.to_csv(index=False).encode("utf-8")
-        st.download_button("⬇️ Download Tabel Koefisien (CSV)", data=csv_coef,
-                           file_name="koefisien.csv", mime="text/csv")
+&#x20;       st.info("Tidak ada data koefisien untuk filter ini.")
 
-# ── Footer ────────────────────────────────────────────────────
+&#x20;   else:
+
+&#x20;       # KPI
+
+&#x20;       avg\_coef  = df\_coef.groupby("Uniq-ID")\["Payment Coef."].last().mean()
+
+&#x20;       cnt\_15    = (df\_coef.groupby("Uniq-ID")\["Payment Coef."].last() >= 1.5).sum()
+
+&#x20;       cnt\_low   = (df\_coef.groupby("Uniq-ID")\["Payment Coef."].last() < 1.0).sum()
+
+
+
+&#x20;       ck1, ck2, ck3 = st.columns(3)
+
+&#x20;       ck1.metric("📊 Avg Koefisien",      f"{avg\_coef:.2f}")
+
+&#x20;       ck2.metric("🟢 Koef ≥ 1.5 (Excellent)", cnt\_15)
+
+&#x20;       ck3.metric("🔴 Koef < 1.0 (Poor)",  cnt\_low)
+
+&#x20;       st.divider()
+
+
+
+&#x20;       cc1, cc2 = st.columns(2)
+
+&#x20;       with cc1:
+
+&#x20;           # Distribusi koefisien
+
+&#x20;           coef\_dist = (df\_coef.groupby(\["Role","Payment Coef."])
+
+&#x20;                          .size().reset\_index(name="Jumlah"))
+
+&#x20;           coef\_dist\["Koef"] = coef\_dist\["Payment Coef."].astype(str)
+
+&#x20;           fig\_c1 = px.bar(coef\_dist, x="Koef", y="Jumlah", color="Role",
+
+&#x20;                           barmode="group", title="Distribusi Koefisien per Role",
+
+&#x20;                           text="Jumlah", height=340)
+
+&#x20;           fig\_c1.update\_traces(textposition="outside")
+
+&#x20;           fig\_c1.update\_layout(margin=dict(t=40))
+
+&#x20;           st.plotly\_chart(fig\_c1, use\_container\_width=True)
+
+
+
+&#x20;       with cc2:
+
+&#x20;           # Avg koefisien per account
+
+&#x20;           coef\_acct = (df\_coef.groupby("Account")\["Payment Coef."]
+
+&#x20;                          .mean().reset\_index()
+
+&#x20;                          .sort\_values("Payment Coef.", ascending=False))
+
+&#x20;           fig\_c2 = px.bar(coef\_acct, x="Account", y="Payment Coef.",
+
+&#x20;                           color="Payment Coef.", color\_continuous\_scale="RdYlGn",
+
+&#x20;                           title="Rata-rata Koefisien per Account",
+
+&#x20;                           text=coef\_acct\["Payment Coef."].round(2), height=340)
+
+&#x20;           fig\_c2.update\_traces(textposition="outside")
+
+&#x20;           fig\_c2.update\_layout(margin=dict(t=40))
+
+&#x20;           st.plotly\_chart(fig\_c2, use\_container\_width=True)
+
+
+
+&#x20;       # Tren koefisien per periode
+
+&#x20;       coef\_trend = (df\_coef.groupby(\["Period","Role"])\["Payment Coef."]
+
+&#x20;                       .mean().reset\_index().sort\_values("Period"))
+
+&#x20;       fig\_ct = px.line(coef\_trend, x="Period", y="Payment Coef.", color="Role",
+
+&#x20;                        markers=True, title="Tren Koefisien per Periode",
+
+&#x20;                        category\_orders={"Period": PERIOD\_ORDER}, height=320)
+
+&#x20;       fig\_ct.add\_hline(y=1.0, line\_dash="dot", line\_color="orange", annotation\_text="Normal (1.0)")
+
+&#x20;       fig\_ct.add\_hline(y=1.5, line\_dash="dot", line\_color="green",  annotation\_text="Excellent (1.5)")
+
+&#x20;       fig\_ct.update\_layout(margin=dict(t=40))
+
+&#x20;       st.plotly\_chart(fig\_ct, use\_container\_width=True)
+
+
+
+&#x20;       # Tabel lengkap koefisien
+
+&#x20;       st.markdown("\*\*📋 Tabel Koefisien per Individu\*\*")
+
+&#x20;       coef\_tbl = (df\_coef.groupby(\["Uniq-ID","Name Clean","Role","Account","Period"])
+
+&#x20;                     .agg(Score=("Score","max"), Coef=("Payment Coef.","first"),
+
+&#x20;                          Range=("Productivity Range", lambda x: x.mode()\[0] if not x.mode().empty else "Unknown"))
+
+&#x20;                     .reset\_index()
+
+&#x20;                     .sort\_values(\["Role","Coef"], ascending=\[True,False]))
+
+
+
+&#x20;       st.dataframe(
+
+&#x20;           coef\_tbl.rename(columns={"Name Clean":"Nama","Payment Coef.":"Koef",
+
+&#x20;                                     "Productivity Range":"Range"})
+
+&#x20;                   .style
+
+&#x20;                   .map(highlight\_range, subset=\["Range"])
+
+&#x20;                   .map(highlight\_coef,  subset=\["Coef"])
+
+&#x20;                   .format({"Score":"{:.2f}", "Coef": lambda x: f"{x:.1f}" if pd.notna(x) else "–"}),
+
+&#x20;           use\_container\_width=True, height=400
+
+&#x20;       )
+
+
+
+&#x20;       csv\_coef = coef\_tbl.to\_csv(index=False).encode("utf-8")
+
+&#x20;       st.download\_button("⬇️ Download Tabel Koefisien (CSV)", data=csv\_coef,
+
+&#x20;                          file\_name="koefisien.csv", mime="text/csv")
+
+\# ══════════════════════════════════════════════
+
+\# TAB 6 — REPORT CARDS
+
+\# ══════════════════════════════════════════════
+
+
+
+with tab6:
+
+
+
+&#x20;   st.subheader(
+
+&#x20;       "🪪 Individual Report Cards"
+
+&#x20;   )
+
+
+
+&#x20;   st.caption(
+
+&#x20;       "Scan cepat performa seluruh individu"
+
+&#x20;   )
+
+
+
+&#x20;   people = sorted(
+
+&#x20;       df\["Name Clean"]
+
+&#x20;       .dropna()
+
+&#x20;       .unique()
+
+&#x20;   )
+
+
+
+&#x20;   cols = st.columns(3)
+
+
+
+&#x20;   for i,name in enumerate(people):
+
+
+
+&#x20;       person\_df = df\[
+
+&#x20;           df\["Name Clean"]==name
+
+&#x20;       ]
+
+
+
+&#x20;       with cols\[i%3]:
+
+
+
+&#x20;           render\_report\_card(
+
+&#x20;               person\_df
+
+&#x20;           )
+
+\# ── Footer ────────────────────────────────────────────────────
+
 st.divider()
+
 st.caption("📊 Productivity Dashboard · Data diproses langsung dari file Excel yang diupload")
