@@ -111,10 +111,54 @@ st.markdown("""
         letter-spacing:0.06em; font-weight:600;
     }
 
-    /* Headings in main area */
-    h1, h2, h3, h4, h5, p, span, label, div { color:var(--kg-text); }
+    /* Headings & body text — force light color everywhere in main area */
+    .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
+    .main p, .main span, .main label, .main li,
+    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] span,
+    [data-testid="stMarkdownContainer"] li {
+        color:var(--kg-text) !important;
+    }
     h3 { color:#ffffff !important; font-weight:700 !important; }
-    .stMarkdown, .stCaption, [data-testid="stCaptionContainer"] { color:var(--kg-muted) !important; }
+    .stCaption, [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {
+        color:var(--kg-muted) !important;
+    }
+
+    /* File uploader widget */
+    [data-testid="stFileUploader"] {
+        background:var(--kg-panel); border:1px solid var(--kg-border);
+        border-radius:10px; padding:8px;
+    }
+    [data-testid="stFileUploader"] section {
+        background:var(--kg-panel-2) !important; border:1px dashed var(--kg-border) !important;
+    }
+    [data-testid="stFileUploaderDropzoneInstructions"] span,
+    [data-testid="stFileUploaderDropzoneInstructions"] div,
+    [data-testid="stFileUploaderDropzoneInstructions"] small {
+        color:var(--kg-text) !important;
+    }
+    [data-testid="stFileUploaderDropzoneInstructions"] small { color:var(--kg-muted) !important; }
+    [data-testid="stFileUploader"] button {
+        background:var(--kg-blue) !important; color:white !important; border:none !important;
+    }
+
+    /* Widget labels (selectbox, text_input, multiselect, etc. in main area) */
+    [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label {
+        color:var(--kg-text) !important; font-weight:600 !important;
+    }
+
+    /* st.info / st.warning / st.success / st.error text */
+    div[data-testid="stAlert"] p, div[data-testid="stAlert"] span {
+        color:var(--kg-text) !important;
+    }
+
+    /* Selectbox selected value text */
+    div[data-baseweb="select"] span { color:var(--kg-text) !important; }
+
+    /* Subheader text specifically */
+    [data-testid="stHeading"] p, [data-testid="stHeading"] span {
+        color:#ffffff !important;
+    }
 
     /* KPI metric cards */
     div[data-testid="stMetric"] {
