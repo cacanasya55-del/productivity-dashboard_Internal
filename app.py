@@ -46,15 +46,15 @@ st.markdown("""
 <style>
     /* ── Dark Mode theme tokens ────────────────────────────── */
     :root {
-        --kg-bg:        #0b1120;
-        --kg-bg-2:      #0f172a;
-        --kg-panel:     #111a2e;
-        --kg-panel-2:   #15203a;
-        --kg-border:    #243044;
-        --kg-blue:      #3b82f6;
-        --kg-blue-dim:  rgba(59,130,246,0.15);
-        --kg-text:      #e6eaf2;
-        --kg-muted:     #8b95a8;
+        --kg-bg:        #1c2128;
+        --kg-bg-2:      #22272e;
+        --kg-panel:     #22272e;
+        --kg-panel-2:   #2d333b;
+        --kg-border:    #2d333b;
+        --kg-blue:      #388bfd;
+        --kg-blue-dim:  rgba(56,139,253,0.15);
+        --kg-text:      #e6edf3;
+        --kg-muted:     #8b949e;
         --kg-pill-bg:   #1a2540;
         --kg-pill-bd:   #2c3a56;
     }
@@ -216,13 +216,14 @@ PERIOD_ORDER = ["M-01", "M-02", "M-03", "M-04"]
 import plotly.io as pio
 pio.templates["kg_dark"] = go.layout.Template(
     layout=go.Layout(
-        paper_bgcolor="#111a2e",
-        plot_bgcolor="#111a2e",
-        font=dict(color="#e6eaf2", family="Inter, sans-serif"),
-        xaxis=dict(gridcolor="#243044", linecolor="#243044", zerolinecolor="#243044"),
-        yaxis=dict(gridcolor="#243044", linecolor="#243044", zerolinecolor="#243044"),
+        paper_bgcolor="#22272e",
+        plot_bgcolor="#22272e",
+        font=dict(color="#e6edf3", family="Inter, sans-serif"),
+        xaxis=dict(gridcolor="#2d333b", linecolor="#2d333b", zerolinecolor="#2d333b"),
+        yaxis=dict(gridcolor="#2d333b", linecolor="#2d333b", zerolinecolor="#2d333b"),
         legend=dict(bgcolor="rgba(0,0,0,0)"),
-        colorway=["#3b82f6","#22c55e","#f59e0b","#a855f7","#ef4444","#06b6d4"],
+        colorway=["#388bfd","#5fd99e","#e3b341","#a371f7","#f47174","#39c5cf"],
+        margin=dict(t=50, b=40, l=50, r=20),
     )
 )
 pio.templates.default = "kg_dark"
@@ -398,6 +399,7 @@ with tab1:
                      color_discrete_map=RANGE_COLOR, barmode="stack", text="Jumlah")
         fig.update_traces(textposition="inside")
         fig.update_layout(height=360, legend_title="Range", margin=dict(t=20))
+        fig.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig, use_container_width=True)
 
     with c2:
@@ -406,6 +408,7 @@ with tab1:
         fig2 = px.line(trend, x="Period", y="Score", color="Role",
                        markers=True, category_orders={"Period": PERIOD_ORDER})
         fig2.update_layout(height=360, margin=dict(t=20))
+        fig2.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig2, use_container_width=True)
 
     c3, c4 = st.columns(2)
@@ -417,6 +420,7 @@ with tab1:
                       color="Role", text=top["Score"].round(2), hover_data=["Account","Role"])
         fig3.update_traces(texttemplate="%{text}", textposition="outside")
         fig3.update_layout(height=500, yaxis={"categoryorder":"total ascending"}, margin=dict(t=20))
+        fig3.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig3, use_container_width=True)
 
     with c4:
@@ -426,6 +430,7 @@ with tab1:
                       color_continuous_scale="RdYlGn", text=acct["Score"].round(2))
         fig4.update_traces(textposition="outside")
         fig4.update_layout(height=500, margin=dict(t=20))
+        fig4.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig4, use_container_width=True)
 
     c5, c6 = st.columns(2)
@@ -437,6 +442,7 @@ with tab1:
                       color_discrete_map={"Ended":"#27ae60","Ongoing":"#f39c12",
                                           "Not Start":"#95a5a6","Unknown":"#bdc3c7"})
         fig5.update_layout(height=360, margin=dict(t=20))
+        fig5.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig5, use_container_width=True)
 
     with c6:
@@ -448,6 +454,7 @@ with tab1:
                           color_discrete_map=RANGE_COLOR, barmode="stack", text="Jumlah")
             fig6.update_traces(textposition="inside")
             fig6.update_layout(height=360, margin=dict(t=20))
+            fig6.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
             st.plotly_chart(fig6, use_container_width=True)
         else:
             st.info("Data Region hanya tersedia untuk role QC, SE, dan PE.")
@@ -496,6 +503,7 @@ with tab2:
                           title="At-Risk per Role", text="Jumlah", height=280)
         fig_risk.update_traces(textposition="outside")
         fig_risk.update_layout(showlegend=False, margin=dict(t=40,b=20))
+        fig_risk.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig_risk, use_container_width=True)
 
         st.subheader("📋 Daftar Individu At-Risk")
@@ -580,6 +588,7 @@ with tab3:
         fig_comp.add_shape(type="line", x0=0, y0=0, x1=max_val, y1=max_val,
                            line=dict(dash="dot", color="gray", width=1))
         fig_comp.update_layout(margin=dict(t=40))
+        fig_comp.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig_comp, use_container_width=True)
 
         # Top mover
@@ -862,6 +871,7 @@ with tab5:
                             text="Jumlah", height=340)
             fig_c1.update_traces(textposition="outside")
             fig_c1.update_layout(margin=dict(t=40))
+            fig_c1.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
             st.plotly_chart(fig_c1, use_container_width=True)
 
         with cc2:
@@ -875,6 +885,7 @@ with tab5:
                             text=coef_acct["Payment Coef."].round(2), height=340)
             fig_c2.update_traces(textposition="outside")
             fig_c2.update_layout(margin=dict(t=40))
+            fig_c2.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
             st.plotly_chart(fig_c2, use_container_width=True)
 
         # Tren koefisien per periode
@@ -886,6 +897,7 @@ with tab5:
         fig_ct.add_hline(y=1.0, line_dash="dot", line_color="orange", annotation_text="Normal (1.0)")
         fig_ct.add_hline(y=1.5, line_dash="dot", line_color="green",  annotation_text="Excellent (1.5)")
         fig_ct.update_layout(margin=dict(t=40))
+        fig_ct.update_layout(template="kg_dark", paper_bgcolor="#22272e", plot_bgcolor="#22272e")
         st.plotly_chart(fig_ct, use_container_width=True)
 
         # Tabel lengkap koefisien
